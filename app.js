@@ -7,6 +7,37 @@ const bot = new TeleBot({
         // Plugin configs
     }
 });
+
+var NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js');
+var natural_language_understanding = new NaturalLanguageUnderstandingV1({
+  'username': "b8773c63-2d40-4449-96eb-5b077028323c",
+  'password': "8a7Wr1i6VGEs",
+  'version': '2018-03-16'
+});
+
+var parameters = {
+  'text': 'I want book a flight',
+  'features': {
+    'entities': {
+      'emotion': true,
+      'sentiment': true,
+      'limit': 2
+    },
+    'keywords': {
+      'emotion': true,
+      'sentiment': true,
+      'limit': 2
+    }
+  }
+}
+
+natural_language_understanding.analyze(parameters, function(err, response) {
+  if (err)
+    console.log('error:', err);
+  else
+    console.log(JSON.stringify(response, null, 2));
+});
+
 var mysql = require('mysql');
 var messages = ['Bienvenido a Airbot, su asistente 24/7 para realizar reservas de vuelo. ¿Qué desea hacer?',
 				'Espero que nos volvamos a ver pronto. Ten un buen día.',
@@ -53,7 +84,7 @@ connection.connect(function(error){
    if(error){
       throw error;
    }else{
-      console.log('Conexion correcta con con base de datos.');
+      console.log('Conexion correcta con con base de datos');
    }
 });
 
