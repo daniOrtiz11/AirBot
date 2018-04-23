@@ -26,8 +26,11 @@ function getkeys(){
 }
 
 function configurationBotInit(){
-    //watson.getKeyWatson("I want book a flight to Madrid");
+    //Funcion para llamar a watson
+    watson.getKeyWatson("I want book a flight to Madrid");
+    //funcion para ir a por el valor de las keywords despues de la llamada a la api
     setTimeout(getkeys, 1000);
+    
     //bd.startConnection();
     //Manejo de eventos
     //Mensaje de bienvenida, también funciona con start.
