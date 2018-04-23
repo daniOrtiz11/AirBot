@@ -26,7 +26,7 @@ function getkeys(){
 }
 
 function configurationBotInit(){
-    watson.getKeyWatson("I want book a flight to Madrid");
+    //watson.getKeyWatson("I want book a flight to Madrid");
     setTimeout(getkeys, 1000);
     //bd.startConnection();
     //Manejo de eventos
