@@ -4,7 +4,7 @@ var natural_language_understanding = new NaturalLanguageUnderstandingV1({
   'password': "8a7Wr1i6VGEs",
   'version': '2018-03-16'
 });
-var keywords = "vacio";
+var keywords;
 
 
 function getKeyWatson(conversation){
@@ -28,7 +28,9 @@ natural_language_understanding.analyze(parameters, function(err, response) {
   if (err)
     console.log('error:', err);
   else{
-    keywords = JSON.stringify(response, null, 2);
+    //to parser like string
+    //keywords = JSON.stringify(response, null, 2);
+      keywords = response;
   }
 });
    

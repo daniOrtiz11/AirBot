@@ -17,19 +17,33 @@ var messages = ['Bienvenido a Airbot, su asistente 24/7 para realizar reservas d
 
 function init(){
     configurationBotInit();
+    parserKeys();
     bot.start();
 }
 
-function getkeys(){
+function getkeys(id){
    keywords = watson.getKeys();
-    console.log(keywords);
+    bot.sendMessage(id, 'WE ARE VENOM AND WE ARE PARSER YOUR TEXT!');
+    console.log("ENTITIES:");
+    console.log(keywords.entities);
+     console.log("KEYWORDS:");
+    console.log(keywords.keywords);
+}
+
+function parserKeys(){
+  bot.on('text', (data) => {
+var texto = data.text;
+watson.getKeyWatson(texto);
+var id = data.from.id;
+setTimeout(getkeys, 1000, id);
+});
 }
 
 function configurationBotInit(){
     //Funcion para llamar a watson
-    watson.getKeyWatson("I want book a flight to Madrid");
+    //watson.getKeyWatson("I want book a flight to Madrid");
     //funcion para ir a por el valor de las keywords despues de la llamada a la api
-    setTimeout(getkeys, 1000);
+    //setTimeout(getkeys, 1000);
     
     //bd.startConnection();
     //Manejo de eventos
@@ -55,6 +69,7 @@ function configurationBotInit(){
         ]);
         return bot.sendMessage(msg.from.id, 'Sobre que desea realizar la consulta, ¿sobre un vuelo o una reserva?', {replyMarkup});
     });
+    
     //Consultar/modificar recordatorio
     bot.on(['/reminder', '/recordatorio'], (msg) => "");
     //Pedir recomendaciones
