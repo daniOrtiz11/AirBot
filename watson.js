@@ -20,7 +20,8 @@ function getKeyWatson(conversation){
       'emotion': true,
       'sentiment': true,
       'limit': 2
-    }
+    },
+    'semantic_roles': {}
   }
 }
 var resul = "";

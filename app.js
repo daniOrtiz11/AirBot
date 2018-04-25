@@ -1,6 +1,7 @@
 const TeleBot = require('telebot');
 const watson =require('./watson');
 const bd = require('./ourbd');
+const parser = require('./parser');
 const bot = new TeleBot({
     token: '593194083:AAGUm1oWDfrgG5qhvuH5gvJk-Bn8toPNhm0',
     usePlugins: ['askUser', 'commandButton','namedButtons'],
@@ -23,19 +24,32 @@ function init(){
 
 function getkeys(id){
    keywords = watson.getKeys();
-    bot.sendMessage(id, 'WE ARE VENOM AND WE ARE PARSER YOUR TEXT!');
-    console.log("ENTITIES:");
-    console.log(keywords.entities);
-     console.log("KEYWORDS:");
-    console.log(keywords.keywords);
+    if (keywords != undefined){
+        var entities = parser.parserEntities(keywords.entities);
+        var verbs = parser.parserVerbs(keywords.semantic_roles);
+        var words = parser.parserWords(keywords.keywords);
+        bot.sendMessage(id, 'WE ARE VENOM AND WE ARE PARSER YOUR TEXT!');
+        console.log("ENTITIES:");
+        console.log(entities);
+        //console.log(keywords.entities);
+         console.log("KEYWORDS:");
+        console.log(words);
+         console.log("VERBS:");
+        console.log(verbs);
+        //console.log(JSON.stringify(keywords.semantic_roles));
+    }
+    else
+        parserKeys();
 }
 
 function parserKeys(){
-  bot.on('text', (data) => {
-var texto = data.text;
-watson.getKeyWatson(texto);
-var id = data.from.id;
-setTimeout(getkeys, 1000, id);
+    bot.on('text', (data) => {
+    var texto = data.text;
+    if(texto != "" && texto != null && texto != undefined){
+        watson.getKeyWatson(texto);
+        var id = data.from.id;
+        setTimeout(getkeys, 1000, id);
+    }
 });
 }
 
