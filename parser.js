@@ -3,6 +3,7 @@
 }
 
 exports.parserKey = parserKey;*/
+var verbs_to_reserve = ["book","reserve"];
 
 function parserEntities(dic){
     var entities = [];
@@ -32,6 +33,18 @@ function parserWords(dic){
     return keys;
 }
 
+function parserFunction(verbs,entities){
+    var action = -1;
+    for(i = 0; i < verbs.length && action == -1; i++){
+        var verbact = verbs[i];
+        console.log(verbact);
+        if(verbs_to_reserve.indexOf(verbact) != -1){
+            action = 1;
+        }
+    }
+    return action;
+}
 exports.parserEntities=parserEntities;
 exports.parserVerbs=parserVerbs;
 exports.parserWords=parserWords;
+exports.parserFunction=parserFunction;

@@ -64,3 +64,4 @@ function consultaReserva(id){
 
 exports.connection=connection;
 exports.startConnection=startConnection;
+exports.insertarUsuarioBD=insertarUsuarioBD;

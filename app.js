@@ -11,14 +11,16 @@ const bot = new TeleBot({
     }
 });
 var keywords;
+var id;
 var running = false;
-var messages = ['Bienvenido a Airbot, su asistente 24/7 para realizar reservas de vuelo. ¿Qué desea hacer?',
-				'Espero que nos volvamos a ver pronto. Ten un buen día.',
-				'Mensaje de ayuda: escriba /start o /hola para empezar Airbot!'
+var messages = ['Welcome to Airbot, your assistant 24/7 for flight reservations. What would you like to do?',
+				'I hope we meet again soon. Have a nice day.',
+				'Help message: type /start or /hello to start Airbot!'
 				];
 
 function init(){
     //configurationBotInit();
+    bd.startConnection();
     parserMessages();
     bot.start();
 }
@@ -29,28 +31,27 @@ function getkeys(id){
         var entities = parser.parserEntities(keywords.entities);
         var verbs = parser.parserVerbs(keywords.semantic_roles);
         var words = parser.parserWords(keywords.keywords);
-        bot.sendMessage(id, 'WE ARE VENOM AND WE ARE PARSER YOUR TEXT!');
-        console.log("ENTITIES:");
-        console.log(entities);
-        //console.log(keywords.entities);
-         console.log("KEYWORDS:");
-        console.log(words);
-         console.log("VERBS:");
-        console.log(verbs);
-        //console.log(JSON.stringify(keywords.semantic_roles));
+        var action = parser.parserFunction(verbs,entities);
+        if(action != -1){
+            bot.sendMessage(id, "You want to book a flight");
+        }
+        else{
+            bot.sendMessage(id, "Sorry, I could not understand you, could you repeat it?")
+        }
     }
 }
 
 function parserMessages(){
     bot.on('text', (data) => {
     var texto = data.text;
-    var id = data.from.id;
+    id = data.from.id;
     if(texto != "" && texto != null && texto != undefined){
-        if(texto == "/start" || texto == "/hola"){
+        if(texto == "/start" || texto == "/hi" || texto == "/hello"){
             bot.sendMessage(id, messages[0]);
             running = true;
+            bd.insertarUsuarioBD(id);
         }
-        else if(texto == "/stop" || texto == "/adios"){
+        else if(texto == "/stop" || texto == "/bye" || texto == "/goodbye"){
             bot.sendMessage(id, messages[1]);
             running = false;
         }
