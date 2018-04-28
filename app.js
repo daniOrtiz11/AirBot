@@ -70,20 +70,6 @@ function parserMessages(){
 }
 
 function configurationBotInit(){
-    //Funcion para llamar a watson
-    //watson.getKeyWatson("I want book a flight to Madrid");
-    //funcion para ir a por el valor de las keywords despues de la llamada a la api
-    //setTimeout(getkeys, 1000);
-    
-    //bd.startConnection();
-    //Manejo de eventos
-    //Mensaje de bienvenida, también funciona con start.
-    //En msg.from.id tenemos el ID de cada cliente que entra al chat, para poder guardarlo en la base de datos.
-    bot.on(['/start', '/hola'], (msg) => (msg.reply.text(messages[0]) && insertarUsuarioBD(msg.from.id)));
-    //Mensaje de despedida, también funciona con stop.
-    bot.on(['/stop', '/adios'], (msg) => msg.reply.text(messages[1]));
-    //Sección de ayuda de comandos.
-    bot.on(['/help', '/ayuda'], (msg) => msg.reply.text(messages[2]));
     //Inicio del proceso de reserva
     bot.on(['/booking', '/reserva'], (msg) => "");
     //Consulta sobre un vuelo o reserva.
