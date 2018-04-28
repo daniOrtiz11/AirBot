@@ -11,14 +11,15 @@ const bot = new TeleBot({
     }
 });
 var keywords;
+var running = false;
 var messages = ['Bienvenido a Airbot, su asistente 24/7 para realizar reservas de vuelo. ¿Qué desea hacer?',
 				'Espero que nos volvamos a ver pronto. Ten un buen día.',
-				'Ayuda'
+				'Mensaje de ayuda: escriba /start o /hola para empezar Airbot!'
 				];
 
 function init(){
-    configurationBotInit();
-    parserKeys();
+    //configurationBotInit();
+    parserMessages();
     bot.start();
 }
 
@@ -38,17 +39,32 @@ function getkeys(id){
         console.log(verbs);
         //console.log(JSON.stringify(keywords.semantic_roles));
     }
-    else
-        parserKeys();
 }
 
-function parserKeys(){
+function parserMessages(){
     bot.on('text', (data) => {
     var texto = data.text;
+    var id = data.from.id;
     if(texto != "" && texto != null && texto != undefined){
-        watson.getKeyWatson(texto);
-        var id = data.from.id;
-        setTimeout(getkeys, 1000, id);
+        if(texto == "/start" || texto == "/hola"){
+            bot.sendMessage(id, messages[0]);
+            running = true;
+        }
+        else if(texto == "/stop" || texto == "/adios"){
+            bot.sendMessage(id, messages[1]);
+            running = false;
+        }
+        else{
+            if(running == false)
+            bot.sendMessage(id, messages[2]);
+            else{
+                watson.getKeyWatson(texto);
+                setTimeout(getkeys, 1000, id);
+            }
+        }
+        
+       
+        
     }
 });
 }
