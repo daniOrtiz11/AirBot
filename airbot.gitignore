@@ -1,0 +1,3 @@
+# Ignorar el contenido de las carpetas 
+node_modules/
+plugins/

@@ -41,8 +41,19 @@ function insertarUsuarioBD(id){
 }
 
 function consultaVuelo(id){
-	console.log("aaa");
 	connection.query('SELECT * FROM vuelos WHERE id=?', [id],function(err, rows, fields){
+	   if (err){
+		   throw err;
+	   }else{
+		   return rows[0];
+	   }
+	});
+}
+
+function consultaVueloByOrigenDestino(origen,destino){
+    var f = new Date();
+    var today = f.getDate() + "-" + (f.getMonth() +1) + "-" + f.getFullYear() + " 23:59";   
+	connection.query('SELECT * FROM vuelos WHERE origen=? and destino=? and fecha > ? and plazas > 0', [origen,destino,today],function(err, rows, fields){
 	   if (err){
 		   throw err;
 	   }else{
@@ -62,6 +73,7 @@ function consultaReserva(id){
 	});
 }
 
+exports.consultaVueloByOrigenDestino=consultaVueloByOrigenDestino;
 exports.connection=connection;
 exports.startConnection=startConnection;
 exports.insertarUsuarioBD=insertarUsuarioBD;

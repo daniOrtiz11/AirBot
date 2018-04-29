@@ -37,7 +37,6 @@ function parserFunction(verbs,entities){
     var action = -1;
     for(i = 0; i < verbs.length && action == -1; i++){
         var verbact = verbs[i];
-        console.log(verbact);
         if(verbs_to_reserve.indexOf(verbact) != -1){
             action = 1;
         }
