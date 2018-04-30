@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-04-2018 a las 17:14:52
+-- Tiempo de generación: 30-04-2018 a las 11:27:10
 -- Versión del servidor: 10.1.30-MariaDB
 -- Versión de PHP: 7.2.2
 
@@ -47,6 +47,7 @@ CREATE TABLE `reservas` (
   `idvueloretorno` int(11) DEFAULT NULL,
   `idusuario` int(11) NOT NULL,
   `fechareserva` varchar(50) NOT NULL,
+  `horareserva` varchar(50) NOT NULL,
   `npersonas` int(11) NOT NULL,
   `expirado` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -55,8 +56,8 @@ CREATE TABLE `reservas` (
 -- Volcado de datos para la tabla `reservas`
 --
 
-INSERT INTO `reservas` (`id`, `idvueloida`, `idvueloretorno`, `idusuario`, `fechareserva`, `npersonas`, `expirado`) VALUES
-(1, 1, NULL, 140760980, '21/04/2018 18:25', 1, 0);
+INSERT INTO `reservas` (`id`, `idvueloida`, `idvueloretorno`, `idusuario`, `fechareserva`, `horareserva`, `npersonas`, `expirado`) VALUES
+(1, 1, NULL, 140760980, '21/04/2018 18:25', '11:14', 1, 0);
 
 -- --------------------------------------------------------
 
@@ -85,7 +86,8 @@ CREATE TABLE `vuelos` (
   `id` int(11) NOT NULL,
   `origen` varchar(100) NOT NULL,
   `destino` varchar(100) NOT NULL,
-  `fecha` varchar(50) NOT NULL,
+  `fecha` date NOT NULL,
+  `hora` varchar(50) NOT NULL,
   `precio` double NOT NULL,
   `plazas` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -94,8 +96,8 @@ CREATE TABLE `vuelos` (
 -- Volcado de datos para la tabla `vuelos`
 --
 
-INSERT INTO `vuelos` (`id`, `origen`, `destino`, `fecha`, `precio`, `plazas`) VALUES
-(1, 'Madrid', 'Poznan', '22-04-2018 03:50', 45, 200);
+INSERT INTO `vuelos` (`id`, `origen`, `destino`, `fecha`, `hora`, `precio`, `plazas`) VALUES
+(1, 'Madrid', 'Poznan', '2018-08-16', '15:30', 45, 200);
 
 --
 -- Índices para tablas volcadas

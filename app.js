@@ -70,17 +70,32 @@ function controlAcciones(texto){
             }
         }
         if(reserva_destino != "" && reserva_origen != ""){
-            console.log("if5");
-            posiblevuelo = bd.consultaVueloByOrigenDestino(reserva_origen, reserva_destino);
-            if(posiblevuelo == undefined){
+            bd.flight(reserva_origen, reserva_destino,function(err, result){
+				posiblevuelo = result;
+				 if(posiblevuelo == undefined){
                 bot.sendMessage(id, "Sorry, I could not find a flight to you, you could try again with others destinations");
                 action = -1;
-            }
-            else{
-                bot.sendMessage(id, "I have found a flight to you on the date: ");
-            }
-            console.log(posiblevuelo);
-            
+				}
+				else{
+					var str = (posiblevuelo.fecha.toString().split("00:00")[0]) + "at " + posiblevuelo.hora;
+					bot.sendMessage(id, "I have found a flight to you on the date: " + str);
+					bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
+					//Introduzca usuario numero
+					if(posiblevuelo.plazas > 2){ //Numero introducido por usuario
+					
+						//Preguntar si quiere vuelo de vuelta, antes de hacer la confirmación.
+						bot.sendMessage(id, "We have enough tickes for you! Do you want to confirm the booking?");
+						if(){ //Confirmación
+							bd.confirmBooking(posiblevuelo,id, 2); //Vuelo y nº de plazas
+							// Imprimir informe de reserva.
+							// Preguntar si quiere un recordatorio de la reserva.
+						} else { 
+							bot.sendMessage(id, "What a pity! We will be waiting for your new booking!");
+							//Hacer algo.
+						}
+					}					
+				}
+			});
         }
     }
 }
@@ -123,10 +138,10 @@ function configurationBotInit(){
 
         const replyMarkup = bot.inlineKeyboard([
             [
-                bot.inlineButton('Vuelo', {callback: 'consultaVuelo("1")'})
+                bot.inlineButton('Vuelo', {callback: db.consultaVuelo("1")})
             ],
             [
-                bot.inlineButton('Reserva', {callback: 'consultaReserva("1")'})
+                bot.inlineButton('Reserva', {callback: db.consultaReserva("1")})
             ]
         ]);
         return bot.sendMessage(msg.from.id, 'Sobre que desea realizar la consulta, ¿sobre un vuelo o una reserva?', {replyMarkup});
