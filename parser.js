@@ -4,6 +4,7 @@
 
 exports.parserKey = parserKey;*/
 var verbs_to_reserve = ["book","reserve"];
+var verbs_to_consult = ["consult","query","see"];
 
 function parserEntities(dic){
     var entities = [];
@@ -39,7 +40,9 @@ function parserFunction(verbs,entities){
         var verbact = verbs[i];
         if(verbs_to_reserve.indexOf(verbact) != -1){
             action = 1;
-        }
+        }else if(verbs_to_consult.indexOf(verbact) != -1){
+			action = 2;
+		}
     }
     return action;
 }

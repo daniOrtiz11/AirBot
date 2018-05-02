@@ -40,8 +40,8 @@ function getkeys(texto){
         entities = parser.parserEntities(keywords.entities);
         verbs = parser.parserVerbs(keywords.semantic_roles);
         words = parser.parserWords(keywords.keywords);
-        console.log(entities);
-        console.log(keywords);
+        //console.log(words);
+        //console.log(keywords);
         if(action == -1)
         action = parser.parserFunction(verbs,entities);
     }
@@ -89,7 +89,7 @@ function controlAcciones(texto){
 					bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
 					//Introduzca usuario numero
                     
-					if(posiblevuelo.plazas > 2){ //Numero introducido por usuario
+					/*if(posiblevuelo.plazas > 2){ //Numero introducido por usuario
 					
 						//Preguntar si quiere vuelo de vuelta, antes de hacer la confirmación.
 						bot.sendMessage(id, "We have enough tickes for you! Do you want to confirm the booking?");
@@ -101,11 +101,52 @@ function controlAcciones(texto){
 							bot.sendMessage(id, "What a pity! We will be waiting for your new booking!");
 							//Hacer algo.
 						}
-					}					
+					}*/					
 				}
 			});
         }
-    }
+    } else if (action == 2){ //Consultas de vuelo o reserva
+		var ok = false;
+		var i = 0;
+		while(i < words.length && !ok){
+			if(words[i] == 'flight' || words[i] == 'booking') ok = true;
+			else i++;
+		}
+		if(words[i] == 'flight'){
+			bot.sendMessage(id, "Of course. Could you write me yours flight's ID?");
+			action = -2;
+			bot.on('text', (data) => {
+				var idF = data.text;
+				bd.consultFlight(idF,function(err, result){ // result = flight
+					if(err){
+						bot.sendMessage(id,'There isn´t any flight with that ID');
+					} else {
+						var str = (result.fecha.toString().split("00:00")[0]) + "at " + result.hora;
+						bot.sendMessage(id,'This is your flight \n'
+										+ 'Flight from '+ result.origen + ' to ' + result.destino + '\n'
+										+ 'Date: ' + str + '\n'
+										+ 'Price: ' + result.precio);
+					}
+				});
+			});
+		} else if(words[i] == 'booking'){
+			bot.sendMessage(id, "Of course. Could you write me yours booking's ID?");
+			action = -2;
+			bot.on('text', (data) => {
+				var idB = data.text;
+				bd.consultBooking(idB,function(err, result){ // result = booking
+					if(err){
+						bot.sendMessage(id,'There isn´t any booking with that ID');
+					} else{
+						bot.sendMessage(id,'This is your booking \n'
+										+ 'ID Flight: '+ result.idvueloida + '\n'
+										+ 'Date of issue: ' + result.fechareserva + '\n'
+										+ 'Number of passengers: ' + result.npersonas);
+					}
+				});
+			});
+		}
+	}
 }
 function parserMessages(){
     bot.on('text', (data) => {
@@ -133,8 +174,10 @@ function parserMessages(){
         }
     }
     else{
-        watson.getKeyWatson(texto);
-        setTimeout(getkeys, 1000, texto);
+		if(action != -2){
+			watson.getKeyWatson(texto);
+			setTimeout(getkeys, 1000, texto);
+		}
         //controlAcciones(texto);
     }
 });

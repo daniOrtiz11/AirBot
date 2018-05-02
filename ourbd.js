@@ -59,7 +59,6 @@ var flight = function consultaVueloByOrigenDestino(origen,destino,callback){
 	   if (err){
 		   throw err;
 	   }else{
-		  console.log(rows[0]);
 		  callback(null, rows[0]);
 	   }
 	});
@@ -89,23 +88,23 @@ function confirmBooking(vuelo, idUser, nTickets){
 	})
 }
 
-function consultaVuelo(id){
+var consultFlight = function consultaVuelo(id,callback){
 	connection.query('SELECT * FROM vuelos WHERE id=?', [id],function(err, rows, fields){
 	   if (err){
 		   throw err;
 	   }else{
-		   return rows[0];
+		    callback(null, rows[0]);
 	   }
 	});
 }
 
-function consultaReserva(id){
+var consultBooking = function consultaReserva(id,callback){
 	
 	connection.query('SELECT * FROM reservas WHERE id=?', [id],function(err, rows, fields){
 	   if (err){
 		   throw err;
 	   }else{
-		   return rows[0];
+		   callback(null, rows[0]);
 	   }
 	});
 }
@@ -114,7 +113,7 @@ function consultaReserva(id){
 exports.connection=connection;
 exports.startConnection=startConnection;
 exports.insertarUsuarioBD=insertarUsuarioBD;
-exports.consultaVuelo=consultaVuelo;
-exports.consultaReserva=consultaReserva;
+exports.consultFlight=consultFlight;
+exports.consultBooking=consultBooking;
 exports.confirmBooking=confirmBooking;
 exports.flight = flight;
