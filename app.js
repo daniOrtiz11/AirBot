@@ -92,7 +92,7 @@ function controlAcciones(texto){
                 }
                 if(reserva_confirm == true){
                     bot.sendMessage(id, "Your flight has been booked successfully!");
-                    bd.confirmBooking(reserva_vuelo, id, reserva_plazas);
+                    bd.confirmBooking(posiblevuelo, id, reserva_plazas);
                     restart();
                 }
                 else{

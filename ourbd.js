@@ -66,6 +66,7 @@ var flight = function consultaVueloByOrigenDestino(origen,destino,callback){
 
 function confirmBooking(vuelo, idUser, nTickets){
 	console.log("In confirm");
+    console.log(vuelo);
 	var hora = new Date();
 	hora = hora.getHours()+":"+hora.getMinutes();
 	
@@ -75,7 +76,7 @@ function confirmBooking(vuelo, idUser, nTickets){
 		if(error){
 			throw error;
 		}else{
-			nPlazas = posiblevuelo.plazas - 1;
+			nPlazas = vuelo.plazas - 1;
 			connection.query('UPDATE vuelos SET plazas=? WHERE id=?',[nPlazas,vuelo.id], function(error, result){
 				if(error){
 					  throw error;
