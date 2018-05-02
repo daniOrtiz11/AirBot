@@ -40,7 +40,13 @@ function getkeys(texto){
         entities = parser.parserEntities(keywords.entities);
         verbs = parser.parserVerbs(keywords.semantic_roles);
         words = parser.parserWords(keywords.keywords);
+        console.log(entities);
+        console.log(keywords);
+        if(action == -1)
         action = parser.parserFunction(verbs,entities);
+    }
+    else{
+        console.log("HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     }
     controlAcciones(texto);
 }
@@ -58,7 +64,7 @@ function controlAcciones(texto){
                 else if(prepro == "from" && reserva_origen == "")
                     reserva_origen = entact;
             }
-            if(reserva_origen == "" && reserva_origen == ""){ //en caso de que no se haya encontrado ni origen ni destino
+            if(reserva_origen == "" && reserva_destino == ""){ //en caso de que no se haya encontrado ni origen ni destino
                 bot.sendMessage(id, "Sorry, I could not understand you, could you repeat it?");
                 action = -1;
             }
@@ -70,6 +76,7 @@ function controlAcciones(texto){
             }
         }
         if(reserva_destino != "" && reserva_origen != ""){
+            
             bd.flight(reserva_origen, reserva_destino,function(err, result){
 				posiblevuelo = result;
 				 if(posiblevuelo == undefined){
@@ -81,6 +88,7 @@ function controlAcciones(texto){
 					bot.sendMessage(id, "I have found a flight to you on the date: " + str);
 					bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
 					//Introduzca usuario numero
+                    
 					if(posiblevuelo.plazas > 2){ //Numero introducido por usuario
 					
 						//Preguntar si quiere vuelo de vuelta, antes de hacer la confirmación.
@@ -125,7 +133,9 @@ function parserMessages(){
         }
     }
     else{
-        controlAcciones(texto);
+        watson.getKeyWatson(texto);
+        setTimeout(getkeys, 1000, texto);
+        //controlAcciones(texto);
     }
 });
 }

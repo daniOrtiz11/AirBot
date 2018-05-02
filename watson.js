@@ -24,7 +24,6 @@ function getKeyWatson(conversation){
     'semantic_roles': {}
   }
 }
-var resul = "";
 natural_language_understanding.analyze(parameters, function(err, response) {
   if (err)
     console.log('error:', err);
