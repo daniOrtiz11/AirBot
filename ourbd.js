@@ -65,13 +65,13 @@ var flight = function consultaVueloByOrigenDestino(origen,destino,callback){
 }
 
 function confirmBooking(vuelo, idUser, nTickets){
-	
+	console.log("In confirm");
 	var hora = new Date();
 	hora = hora.getHours()+":"+hora.getMinutes();
 	
 	//Insert en reservas
 	connection.query('INSERT INTO reservas(id,idvueloida,idvueloretorno,idusuario,fechareserva,horareserva,npersonas,expirado)'+
-					 'VALUES(?,?,?,?,?,?,?,?)', [null,vuelo.id,null,id,vuelo.fecha,hora,nTickets,0], function(error, result){
+					 'VALUES(?,?,?,?,?,?,?,?)', [null,vuelo.id,null,idUser,vuelo.fecha,hora,nTickets,0], function(error, result){
 		if(error){
 			throw error;
 		}else{

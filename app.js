@@ -16,11 +16,15 @@ var verbs;
 var words;
 var id;
 var action = -1;
+var dowatson = true;
 var reserva_origen = "";
 var reserva_destino = "";
 var reserva_fecha = "";
+var reserva_plazas = 0;
+var reserva_confirm = false;
+var reserva_vuelo = false;
 var running = false;
-var posiblevuelo;
+var posiblevuelo = null;
 var messages = ['Welcome to Airbot, your assistant 24/7 for flight reservations. What would you like to do?',
 				'I hope we meet again soon. Have a nice day.',
 				'Help message: type /start or /hello to start Airbot!'
@@ -40,21 +44,19 @@ function getkeys(texto){
         entities = parser.parserEntities(keywords.entities);
         verbs = parser.parserVerbs(keywords.semantic_roles);
         words = parser.parserWords(keywords.keywords);
-        //console.log(words);
-        //console.log(keywords);
         if(action == -1)
         action = parser.parserFunction(verbs,entities);
     }
     else{
-        console.log("HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        console.log("Watson Problem");
     }
     controlAcciones(texto);
 }
 
 function controlAcciones(texto){
-       if(action == 1){ //reserva
+    if(action == 1){ //reserva
+        var textsplit = texto.split(" ");
         if(entities.length > 0 && reserva_fecha == "" && (reserva_origen == "" || reserva_destino == "")){
-            var textsplit = texto.split(" ");
             for(i = 0; i < entities.length; i++){
                 var entact = entities[i];
                 var ind = textsplit.indexOf(entact);
@@ -76,34 +78,62 @@ function controlAcciones(texto){
             }
         }
         if(reserva_destino != "" && reserva_origen != ""){
-            
-            bd.flight(reserva_origen, reserva_destino,function(err, result){
-				posiblevuelo = result;
-				 if(posiblevuelo == undefined){
-                bot.sendMessage(id, "Sorry, I could not find a flight to you, you could try again with others destinations");
-                action = -1;
-				}
-				else{
-					var str = (posiblevuelo.fecha.toString().split("00:00")[0]) + "at " + posiblevuelo.hora;
-					bot.sendMessage(id, "I have found a flight to you on the date: " + str);
-					bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
-					//Introduzca usuario numero
-                    
-					/*if(posiblevuelo.plazas > 2){ //Numero introducido por usuario
-					
-						//Preguntar si quiere vuelo de vuelta, antes de hacer la confirmación.
-						bot.sendMessage(id, "We have enough tickes for you! Do you want to confirm the booking?");
-						if(){ //Confirmación
-							bd.confirmBooking(posiblevuelo,id, 2); //Vuelo y nº de plazas
-							// Imprimir informe de reserva.
-							// Preguntar si quiere un recordatorio de la reserva.
-						} else { 
-							bot.sendMessage(id, "What a pity! We will be waiting for your new booking!");
-							//Hacer algo.
-						}
-					}*/					
-				}
-			});
+            if(reserva_vuelo == true && reserva_confirm == true){
+                
+            }
+            else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas != 0){
+                for(i = 0; i < textsplit.length; i++){
+                    var act = textsplit[i];
+                    var res = act.toLowerCase();
+                    if(res == "yes")
+                        reserva_confirm = true;
+                    else
+                        reserva_confirm = false;
+                }
+                if(reserva_confirm == true){
+                    bot.sendMessage(id, "Your flight has been booked successfully!");
+                    bd.confirmBooking(reserva_vuelo, id, reserva_plazas);
+                    restart();
+                }
+                else{
+                    bot.sendMessage(id, "Ok, maybe the next time");
+                    restart();
+                }
+            }
+            else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas == 0){
+                for(i = 0; i <textsplit.length; i++){
+                    var act = textsplit[i];
+                    var a = parseInt(act);
+                    if(Number.isInteger(a)){
+                         reserva_plazas = a;
+                        
+                    }
+                }
+                if(posiblevuelo.plazas > reserva_plazas){ //Numero introducido por usuario
+                        //Preguntar si quiere vuelo de vuelta, antes de hacer la confirmación.
+                        bot.sendMessage(id, "I have enough tickes for you! Do you want to confirm the booking?");
+                }
+                else{
+                    bot.sendMessage(id, "Sorry I have not enough tickets for you... Try with another flight!");
+                }
+            }
+            else if(reserva_vuelo == false && reserva_confirm == false){
+                bd.flight(reserva_origen, reserva_destino,function(err, result){
+                    posiblevuelo = result;
+                     if(posiblevuelo == undefined){
+                    bot.sendMessage(id, "Sorry, I could not find a flight to you, you could try again with others destinations");
+                    action = -1;
+                    }
+                    else{
+                        var str = (posiblevuelo.fecha.toString().split("00:00")[0]) + "at " + posiblevuelo.hora;
+                        bot.sendMessage(id, "I have found a flight to you on the date: " + str);
+                        bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
+                        reserva_vuelo = true;
+                        dowatson = false;
+                    }
+                });
+            }
+
         }
     } else if (action == 2){ //Consultas de vuelo o reserva
 		var ok = false;
@@ -168,16 +198,23 @@ function parserMessages(){
                 bot.sendMessage(id, messages[2]);
                 else{
                     watson.getKeyWatson(texto);
-                    setTimeout(getkeys, 1000, texto);
+                    setTimeout(getkeys, 2000, texto);
                 }
             }
         }
     }
     else{
 		if(action != -2){
-			watson.getKeyWatson(texto);
-			setTimeout(getkeys, 1000, texto);
+            if(dowatson == true){
+            watson.getKeyWatson(texto);
+			setTimeout(getkeys, 2000, texto);
+            }
+            else
+               controlAcciones(texto);  
 		}
+        else{
+           controlAcciones(texto); 
+        }
         //controlAcciones(texto);
     }
 });
@@ -206,5 +243,23 @@ function configurationBotInit(){
     bot.on(['/recommendation', '/recomendacion'], (msg) => "");
 }
 
+function restart(){
+    keywords = null;
+    entities = null;
+    verbs = null;
+    words = null;
+    id = null;
+    action = -1;
+    dowatson = true;
+    reserva_origen = "";
+    reserva_destino = "";
+    reserva_fecha = "";
+    reserva_plazas = 0;
+    reserva_confirm = false;
+    reserva_vuelo = false;
+    //var running = false;
+    posiblevuelo = null;
+    parserMessages();
+}
 
 init();
