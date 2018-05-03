@@ -65,8 +65,6 @@ var flight = function consultaVueloByOrigenDestino(origen,destino,callback){
 }
 
 function confirmBooking(vuelo, idUser, nTickets){
-	console.log("In confirm");
-    console.log(vuelo);
 	var hora = new Date();
 	hora = hora.getHours()+":"+hora.getMinutes();
 	

@@ -26,10 +26,8 @@ function getKeyWatson(conversation){
 }
 natural_language_understanding.analyze(parameters, function(err, response) {
   if (err)
-    console.log('error:', err);
+    console.log('error:', "watson no ha reconocido el texto");
   else{
-    //to parser like string
-    //keywords = JSON.stringify(response, null, 2);
       keywords = response;
   }
 });
