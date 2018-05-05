@@ -4,8 +4,11 @@
 
 exports.parserKey = parserKey;*/
 var verbs_to_reserve = ["book","reserve"];
-var verbs_to_consult = ["consult","query","see"];
-
+var verbs_to_consult = ["consult","query","see","check"];
+var words_to_querycase1 = ["reserve","reservation","book","booking"];
+var words_to_querycase2 = ["flight","flying"];
+var words_to_querycase3 = ["reserves","reservations","books","stockpile","bookings"];
+var words_to_querycase4 = ["flights"];
 function parserEntities(dic){
     var entities = [];
     for(i = 0; i < dic.length; i++){
@@ -34,6 +37,21 @@ function parserWords(dic){
     return keys;
 }
 
+function parserConsulta(words){
+    var caso = -1;
+    for(i = 0; i < words.length; i++){
+        var act = words[i];
+        if(words_to_querycase1.indexOf(act) != -1)
+            caso = 1;
+        else if(words_to_querycase2.indexOf(act) != -1)
+            caso = 2;
+        else if(words_to_querycase3.indexOf(act) != -1)
+            caso = 3;
+        else if(words_to_querycase4.indexOf(act) != -1)
+            caso = 4;
+    }
+    return caso;
+}
 function parserFunction(verbs,entities){
     var action = -1;
     for(i = 0; i < verbs.length && action == -1; i++){
@@ -50,3 +68,4 @@ exports.parserEntities=parserEntities;
 exports.parserVerbs=parserVerbs;
 exports.parserWords=parserWords;
 exports.parserFunction=parserFunction;
+exports.parserConsulta=parserConsulta;

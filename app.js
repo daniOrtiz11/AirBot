@@ -27,6 +27,7 @@ var running = false;
 var isbooking = false;
 var isconsulting = false;
 var posiblevuelo = null;
+var casoConsulta = -1;
 //Mensajes predeterminados para salidas estandar
 var helpmessages = ['Welcome to Airbot, your assistant 24/7 for flight reservations. What would you like to do?',
 				'I hope we meet again soon. Have a nice day!',
@@ -215,10 +216,67 @@ function controlAcciones(texto){
 
         }
     } else if (action == 2){ //Consultas de vuelo o reserva
+        /*
+        1. caso: reserva
+            1.1 id de reserva
+            1.2 show de vuelo
+        2. caso: vuelo
+            2.1 id de vuelo
+            2.2 show vuelo
+        3. caso: reservas
+            3.1 show todas
+        4. caso: vuelos
+            3.1 show todas
+        5. default: repeat
+        */
 		isconsulting = true;
         var ok = false;
 		var i = 0;
-		while(i < words.length && !ok){
+        if(casoConsulta == -1)
+            casoConsulta = parser.parserConsulta(words);
+        if(casoConsulta != -1){
+           if(casoConsulta == 1){
+               bot.sendMessage(id, "Of course. Could you write me your book's ID?");
+           }
+            else if(casoConsulta == 2){
+                bot.sendMessage(id, "Of course. Could you write me your flight's ID?");
+            }
+            else if(casoConsulta == 3){
+                bot.sendMessage(id, "Of course. These is yours books: ");
+                var vuelos = bd.consultaReservasbyUser(id);
+            }
+            else if(casoConsulta == 4){
+                bot.sendMessage(id, "Of course. These is yours flights: ");
+				bd.consultReservasbyUser(id,function(err, result){ // result = booking
+					if(err){
+						bot.sendMessage(id,'There isn´t any booking with that ID');
+					} else{
+                        if(result.length > 0){
+                            for (i = 0; i < result.length; i++){
+                                var rw = result[i];
+                                var ind = i+1;
+                                var str = (rw.fecha.toString().split("00:00")[0]) + "at " + rw.hora;
+                                bot.sendMessage(id,'This is your flight number '+ind+' \n'
+										+ 'Flight from '+ rw.origen + ' to ' + rw.destino + '\n'
+										+ 'Date: ' + str + '\n'
+                                        + 'Tickets: ' + rw.npersonas + '\n'
+										+ 'Price/ticket: ' + rw.precio);
+                            }
+                        }
+                        else{
+                            bot.sendMessage(id, "Sorry, you dont have fligths but I can help you!");
+                        }
+                        
+					}
+				});
+            }
+        }
+        else{
+            bot.sendMessage(id, helpmessages[13]);
+            restartConsulta();
+            restart();
+        }
+		/*while(i < words.length && !ok){
 			if(words[i] == 'flight' || words[i] == 'booking') ok = true;
 			else i++;
 		}
@@ -255,7 +313,7 @@ function controlAcciones(texto){
 					}
 				});
 			});
-		}
+		}*/
 	}
 }
 /*
@@ -320,6 +378,9 @@ function restartReserva(){
     posiblevuelo = null;
     needwatson = true;
     isbooking = false;
+}
+function restartConsulta(){
+    casoConsulta = -1;
 }
 /*
 Descripcion: funcion de inicio que conecta con la base de datos, 

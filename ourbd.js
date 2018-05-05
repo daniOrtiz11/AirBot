@@ -1,5 +1,6 @@
 // Conexion con base de datos
 var mysql = require('mysql');
+var i = 0;
 var connection = mysql.createConnection({ 
    host: 'localhost',
    user: 'root',
@@ -108,6 +109,16 @@ var consultBooking = function consultaReserva(id,callback){
 	});
 }
 
+var consultReservasbyUser = function queryReservasbyUser(id, callback){
+   connection.query('SELECT r.npersonas, v.origen, v.destino, v.fecha, v.hora, v.precio FROM `reservas` as r INNER JOIN `vuelos` as v on v.id = r.idvueloida WHERE idusuario=?', [id],function(err, rows, fields){
+	   if (err){
+		   throw err;
+	   }else{
+            callback(null, rows);
+	   }
+   });
+}
+
 //exports.consultaVueloByOrigenDestino=consultaVueloByOrigenDestino;
 exports.connection=connection;
 exports.startConnection=startConnection;
@@ -116,3 +127,4 @@ exports.consultFlight=consultFlight;
 exports.consultBooking=consultBooking;
 exports.confirmBooking=confirmBooking;
 exports.flight = flight;
+exports.consultReservasbyUser=consultReservasbyUser;
