@@ -54,14 +54,17 @@ function parserConsulta(words){
 }
 function parserFunction(verbs,entities){
     var action = -1;
-    for(i = 0; i < verbs.length && action == -1; i++){
-        var verbact = verbs[i];
-        if(verbs_to_reserve.indexOf(verbact) != -1){
-            action = 1;
-        }else if(verbs_to_consult.indexOf(verbact) != -1){
-			action = 2;
-		}
+    if(verbs != null){
+        for(i = 0; i < verbs.length && action == -1; i++){
+            var verbact = verbs[i];
+            if(verbs_to_reserve.indexOf(verbact) != -1){
+                action = 1;
+            }else if(verbs_to_consult.indexOf(verbact) != -1){
+                action = 2;
+            }
+        }
     }
+
     return action;
 }
 exports.parserEntities=parserEntities;
