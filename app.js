@@ -295,7 +295,7 @@ function controlAcciones(texto){
 								var rw = result[i];
 								var ind = i+1;
 								var str = (rw.fechaRecordatorio.toString().split("00:00")[0]);	
-								bot.sendMessage(id,'This is your reminder number '+ind+' \n'
+								bot.sendMessage(id,'This is your reminder number ('+ind+') \n'
 								+ 'Reservation ID: '+ rw.idreserva + '\n'
 								+ 'Date: ' + str + '\n'
 								+ 'Days reminder: ' + rw.numeroDias + '\n');
@@ -445,6 +445,8 @@ function restartReminder(){
 function checkText(texto){
    if(texto == "I want to book" || texto== "I want to consult"){
 	   texto += " a flight";
+   } else if (texto == "I want to modify"){
+	   texto += " a reminder";
    }
    return texto;
 }
