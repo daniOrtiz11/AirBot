@@ -65,7 +65,7 @@ var flight = function consultaVueloByOrigenDestino(origen,destino,callback){
 	});
 }
 
-function confirmBooking(vuelo, idUser, nTickets){
+function confirmBooking(vuelo, idUser, nTickets,reminder){
 	var hora = new Date();
 	hora = hora.getHours()+":"+hora.getMinutes();
 	
@@ -84,6 +84,26 @@ function confirmBooking(vuelo, idUser, nTickets){
 				   }
 			});
 			console.log('Reserva realizada correctamente.');
+			if(reminder > 0){
+				connection.query('SELECT r.id FROM reservas r WHERE idusuario=? and fechareserva=? and horareserva=?', [idUser,vuelo.fecha,hora],function(err, rows, fields){
+					if (err){
+						throw err;
+					}else{
+						vuelo.fecha.setDate(vuelo.fecha.getDate() - reminder);
+						var fecha = vuelo.fecha;
+						idR = rows[0].id
+						connection.query('INSERT INTO recordatorios(idreserva,idusuario,fechaRecordatorio,numeroDias)'+
+										 'VALUES(?,?,?,?)',[idR, idUser, fecha, reminder],function(error,result){
+								if(error){
+									throw error;
+								} else {
+									console.log("Recordatorio actualizado");		 
+								}
+											 
+						});
+					}
+				});
+			}
 		}
 	})
 }
@@ -119,6 +139,51 @@ var consultReservasbyUser = function queryReservasbyUser(id, callback){
    });
 }
 
+var reminders = function reminders(id, callback){
+	
+	connection.query('SELECT * FROM recordatorios WHERE idusuario=?', [id],function(err, rows, fields){
+	   if (err){
+		   throw err;
+	   }else{
+		   callback(null, rows);
+	   }
+	});
+}
+
+var consReminder = function consReminder(idR, idU, callback){
+	
+	connection.query('SELECT * FROM recordatorios WHERE idreserva=? and idusuario=?', [idR,idU],function(err, rows, fields){
+	   if (err){
+		   throw err;
+	   }else{
+		   callback(null, rows);
+	   }
+	});
+}
+
+var modifyReminder = function modifyReminder(idR, idU, date, days, callback){
+
+	date.setDate(date.getDate() - days);
+	var fecha = date;
+	connection.query('UPDATE recordatorios SET fechaRecordatorio=?,numeroDias=? WHERE idreserva=? and idusuario=?', [fecha,days,idR,idU],function(err, rows, fields){
+		   if (err){
+			   throw err;
+		   }else{
+			   callback(null, rows);
+		   }
+	});
+}
+
+var consultDateReminder=function consultDateReminder(idR, idU, callback){
+	connection.query('SELECT fechaRecordatorio FROM recordatorios WHERE idreserva=? and idusuario=?', [idR,idU],function(err, rows, fields){
+	   if (err){
+		   throw err;
+	   }else{
+		   callback(null, rows);
+	   }
+	});
+}
+
 //exports.consultaVueloByOrigenDestino=consultaVueloByOrigenDestino;
 exports.connection=connection;
 exports.startConnection=startConnection;
@@ -128,3 +193,7 @@ exports.consultBooking=consultBooking;
 exports.confirmBooking=confirmBooking;
 exports.flight = flight;
 exports.consultReservasbyUser=consultReservasbyUser;
+exports.consReminder=consReminder;
+exports.reminders=reminders;
+exports.modifyReminder=modifyReminder;
+exports.consultDateReminder=consultDateReminder;

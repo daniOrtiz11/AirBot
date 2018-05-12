@@ -28,6 +28,8 @@ var isbooking = false;
 var isconsulting = false;
 var posiblevuelo = null;
 var casoConsulta = -1;
+var confRemind = false;
+var confDays = false;
 //Mensajes predeterminados para salidas estandar
 var helpmessages = [
                 'Welcome to Airbot, your assistant 24/7 for flight reservations. What would you like to do?',
@@ -43,7 +45,7 @@ var helpmessages = [
                 'You can type whatever you want, I try to help you',
                 'Can I do something else for you?',
                 'Sorry, I could not understand you, could you repeat it?',
-                'Ok, maybe the next time',
+                'Ok, maybe next time',
                 'You can book and consult your flights'
 				];
 
@@ -158,6 +160,7 @@ function controlAcciones(texto){
                     if(res == "yes"){
                         repeat = false;
                         reserva_confirm = true;
+						bot.sendMessage(id, "Your flight has been booked successfully! Would you like to set a reminder?");
                     }
                     else if(res == "no"){
                         reserva_confirm = false;
@@ -165,11 +168,26 @@ function controlAcciones(texto){
                     }
                 }
                 if(reserva_confirm == true){
-                    bd.confirmBooking(posiblevuelo, id, reserva_plazas);
-                    bot.sendMessage(id, "Your flight has been booked successfully!");
-                    bot.sendMessage(id, helpmessages[11]);
+					needwatson = false;
+					
+					var reminder = 0;
+					for(i = 0; i < textsplit.length; i++){
+						var act = textsplit[i];
+						var res = act.toLowerCase();
+						if(res == "yes"){
+							bot.sendMessage(id, "We have already set a reminder. We'll notify you 3 days before your flight.");
+							reminder = 3;
+						}
+						else if(res == "no"){
+							bot.sendMessage(id, "Don't worry! You could set it later.");
+							reminder = 0;
+						}
+					}
+	
+					bd.confirmBooking(posiblevuelo, id, reserva_plazas, reminder);
+                    /*bot.sendMessage(id, helpmessages[11]);
                     restartReserva();
-                    restart();
+                    restart();*/
                 }
                 else if(reserva_confirm == false && repeat == false){
                     bot.sendMessage(id, helpmessages[13]);
@@ -216,8 +234,8 @@ function controlAcciones(texto){
                     }
                     else{
                         var str = (posiblevuelo.fecha.toString().split("00:00")[0]) + "at " + posiblevuelo.hora;
-                        bot.sendMessage(id, "I have found a flight to you on the date: " + str);
                         bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
+						bot.sendMessage(id, "I have found a flight to you on the date: " + str);
                         reserva_vuelo = true;
                         needwatson = false;
                     }
@@ -248,7 +266,6 @@ function controlAcciones(texto){
                                         + 'Tickets: ' + rw.npersonas + '\n'
 										+ 'Price/ticket: ' + rw.precio);
                             }
-                            
                         }
                         else{
                             bot.sendMessage(id, "Sorry, you dont have fligths reservations but I can help you!");
@@ -266,7 +283,90 @@ function controlAcciones(texto){
             restartConsulta();
             restart();
         }
+	} else if (action == 3){ //Recordatorio
+		var textsplit = texto.split(" ");
+		if(confRemind == false){
+			bd.reminders(id,function(err, result){
+				if(err){
+					console.log(err);
+				} else{
+					 if(result.length > 0){
+							for (i = 0; i < result.length; i++){
+								var rw = result[i];
+								var ind = i+1;
+								var str = (rw.fechaRecordatorio.toString().split("00:00")[0]);	
+								bot.sendMessage(id,'This is your reminder number '+ind+' \n'
+								+ 'Reservation ID: '+ rw.idreserva + '\n'
+								+ 'Date: ' + str + '\n'
+								+ 'Days reminder: ' + rw.numeroDias + '\n');
+							}
+							bot.sendMessage(id, "Would you like to change any of them? If so, introduce the reservation ID.")
+							confRemind = true;
+							needwatson = false;
+					 }
+					else{
+						bot.sendMessage(id, "Sorry, you dont have reservations!");
+						action = -1;
+						restart();
+					}
+				}
+			});
+	} else {
+		if(confDays == false){
+			for(i = 0; i < textsplit.length; i++){
+				var act = textsplit[i];
+				var res = act.toLowerCase();
+				var a = parseInt(act);
+				if(Number.isInteger(a)){
+					idR = a;
+					bd.consReminder(a,id,function(err, result){
+						if(err){
+							console.log(err);
+						} else {
+							if(result.length > 0){
+								bot.sendMessage(id, "For how many days before do you want to set the reminder?");
+								confDays = true;
+								needwatson = false;
+							} else {
+								bot.sendMessage(id, "Sorry, you don´t have any reminders with that reservation ID");
+								bot.sendMessage(id, helpmessages[11]);
+								action = -1;
+								restartReminder();
+								restart();	
+							}
+						}		
+					});		
+				}
+			}
+		} else {
+			for(i = 0; i < textsplit.length; i++){
+				var act = textsplit[i];
+				var res = act.toLowerCase();
+				var a = parseInt(act);
+				if(Number.isInteger(a)){
+					bd.consultDateReminder(idR,id,function(err,result){
+						if(err){
+							console.log(err);	
+						} else {
+							var date = result[0].fechaRecordatorio;
+							bd.modifyReminder(idR,id,date,a,function(err, result){
+							if(err){
+								console.log(err);	
+							} else {
+								bot.sendMessage(id, "Your reminder has been set successfully!");
+								bot.sendMessage(id, helpmessages[11]);
+								action = -1;
+								restartReminder();
+								restart();
+							}
+							});
+						}
+					});
+				}
+			}
+		}
 	}
+}
 }
 /*
 Descripcion:
@@ -298,6 +398,7 @@ function parserMessages(){
             if(running == false)
             bot.sendMessage(id, helpmessages[2]);
             else{
+				texto = checkText(texto);
                 watson.getKeyWatson(texto);
                 setTimeout(getkeys, 1800, texto);
             }
@@ -334,6 +435,18 @@ function restartReserva(){
 function restartConsulta(){
     casoConsulta = -1;
     isconsulting = false;
+}
+
+function restartReminder(){
+	confDays = false;
+	confRemind = false;
+}
+
+function checkText(texto){
+   if(texto == "I want to book" || texto== "I want to consult"){
+	   texto += " a flight";
+   }
+   return texto;
 }
 /*
 Descripcion: funcion de inicio que conecta con la base de datos, 
