@@ -152,7 +152,32 @@ function controlAcciones(texto){
             }
         }
         if(reserva_destino != "" && reserva_origen != ""){
-            if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas > 0){
+        if(reserva_confirm == true && reserva_plazas > 0 && reserva_vuelo == true){
+					needwatson = false;
+					var reminder = -1;
+					for(i = 0; i < textsplit.length; i++){
+						var act = textsplit[i];
+						var res = act.toLowerCase();
+						if(res == "yes"){
+							bot.sendMessage(id, "We have already set a reminder. We'll notify you 3 days before your flight.");
+							reminder = 3;
+						}
+						else if(res == "no"){
+							bot.sendMessage(id, "Don't worry! You could set it later.");
+							reminder = 0;
+						}
+					}
+	                if(reminder != -1){
+                    bd.confirmBooking(posiblevuelo, id, reserva_plazas, reminder);
+                    bot.sendMessage(id, helpmessages[11]);
+                    restartReserva();
+                    restart();
+                    }
+                    else{
+                    bot.sendMessage(id, helpmessages[12]);
+                    }
+            }
+            else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas > 0){
                 var repeat = true;
                 for(i = 0; i < textsplit.length; i++){
                     var act = textsplit[i];
@@ -167,38 +192,12 @@ function controlAcciones(texto){
                         repeat = false;
                     }
                 }
-                if(reserva_confirm == true){
-					needwatson = false;
-					
-					var reminder = 0;
-					for(i = 0; i < textsplit.length; i++){
-						var act = textsplit[i];
-						var res = act.toLowerCase();
-						if(res == "yes"){
-							bot.sendMessage(id, "We have already set a reminder. We'll notify you 3 days before your flight.");
-							reminder = 3;
-						}
-						else if(res == "no"){
-							bot.sendMessage(id, "Don't worry! You could set it later.");
-							reminder = 0;
-						}
-					}
-	
-					bd.confirmBooking(posiblevuelo, id, reserva_plazas, reminder);
-                    /*bot.sendMessage(id, helpmessages[11]);
-                    restartReserva();
-                    restart();*/
-                }
-                else if(reserva_confirm == false && repeat == false){
+                if(reserva_confirm == false && repeat == false){
                     bot.sendMessage(id, helpmessages[13]);
                     bot.sendMessage(id, helpmessages[11]);
                     restartReserva();
                     restart();
                 }
-                else{
-                    bot.sendMessage(id, helpmessages[12]);
-                }
-                
             }
             else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas == 0){
                 for(i = 0; i <textsplit.length; i++){
