@@ -70,6 +70,23 @@ function parserFunction(verbs,entities){
 
     return action;
 }
+
+function parserYesorNo(textsplit){
+    var respuesta = -1;
+    for(i = 0; i < textsplit.length; i++){
+        var act = textsplit[i];
+        var res = act.toLowerCase();
+        if(res == "yes"){
+            respuesta = 3;
+        }
+        else if(res == "no"){
+            respuesta = 0;
+        }
+    }
+    return respuesta;
+}
+
+exports.parserYesorNo=parserYesorNo;
 exports.parserEntities=parserEntities;
 exports.parserVerbs=parserVerbs;
 exports.parserWords=parserWords;

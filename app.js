@@ -30,6 +30,8 @@ var posiblevuelo = null;
 var casoConsulta = -1;
 var confRemind = false;
 var confDays = false;
+var origenTipico = "";
+var waitingAnswer = false;
 //Mensajes predeterminados para salidas estandar
 var helpmessages = [
                 'Welcome to Airbot, your assistant 24/7 for flight reservations. What would you like to do?',
@@ -46,7 +48,8 @@ var helpmessages = [
                 'Can I do something else for you?',
                 'Sorry, I could not understand you, could you repeat it?',
                 'Ok, maybe next time',
-                'You can book and consult your flights'
+                'You can book and consult your flights',
+                "Ok, don't worry"
 				];
 
 /*
@@ -122,11 +125,13 @@ function getkeys(texto){
     }
 }
 
-function controlAcciones(texto){
-    if(action == 1){ //reserva
-        isbooking = true;
-        var textsplit = texto.split(" ");
-        if(reserva_fecha == "" && (reserva_origen == "" || reserva_destino == "")){
+function controlReserva(textsplit){
+    //Fase donde aun se desconoce el destino y/o el origen del viaje
+    if(reserva_fecha == "" && (reserva_origen == "" || reserva_destino == "")){
+        
+        //Caso done se ofrece recomendacion especifica para origen o destino si es necesario
+        if(waitingAnswer == false){
+        //Caso inicial: se comprueba si el usuario ha introducido el origen y/o el destino de a donde quiere viajar
             if(entities != null){
                 for(i = 0; i < entities.length; i++){
                     var entact = entities[i];
@@ -138,110 +143,174 @@ function controlAcciones(texto){
                         reserva_origen = entact;
                 }
             }
-            if(reserva_origen == "" && reserva_destino == ""){ //en caso de que no se haya encontrado ni origen ni destino
-                //bot.sendMessage(id, helpmessages[12]);
-                bot.sendMessage(id, "Where do you want to travel?");
-                restartReserva();
-                //restart();
+
+            //Caso de que no se haya encontrado el origen en el texto del usuario
+            if(reserva_origen == ""){ 
+                bd.consultaOrigenTipico(id,function(err,result){
+                    if(err){
+                        console.log(err);	
+                    } else {
+                        //El usuario ha hecho reservas anteriormente y se le ofrece el origen desde donde suele partir
+                        if(result != null && result != undefined){
+                        origenTipico = result[0].origenComun;
+                        console.log(origenTipico);
+                        bot.sendMessage(id, "Would you like to travel from ?"+origenTipico);   
+                        waitingAnswer = true;
+                        }
+                        //No hay datos anteriores sobre reservas del usuario
+                        else{
+                            bot.sendMessage(id, "Where do you want to start your travel?");
+                            restartReserva(); 
+                        }
+                    }
+                });
             }
-            else if(reserva_origen != "" && reserva_destino == ""){
-                bot.sendMessage(id, "Where do you want to travel?");
-            }
-            else if(reserva_destino != "" && reserva_origen == ""){
-                bot.sendMessage(id, "Where do you want to start your trip?");
+            //Caso de que no se haya encontrado el origen en el texto del usuario
+            else if(reserva_destino == ""){
+                
             }
         }
-        if(reserva_destino != "" && reserva_origen != ""){
-        if(reserva_confirm == true && reserva_plazas > 0 && reserva_vuelo == true){
-					needwatson = false;
-					var reminder = -1;
-					for(i = 0; i < textsplit.length; i++){
-						var act = textsplit[i];
-						var res = act.toLowerCase();
-						if(res == "yes"){
-							bot.sendMessage(id, "We have already set a reminder. We'll notify you 3 days before your flight.");
-							reminder = 3;
-						}
-						else if(res == "no"){
-							bot.sendMessage(id, "Don't worry! You could set it later.");
-							reminder = 0;
-						}
-					}
-	                if(reminder != -1){
-                    bd.confirmBooking(posiblevuelo, id, reserva_plazas, reminder);
-                    bot.sendMessage(id, helpmessages[11]);
-                    restartReserva();
-                    restart();
-                    }
-                    else{
-                    bot.sendMessage(id, helpmessages[12]);
-                    }
-            }
-            else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas > 0){
-                var repeat = true;
-                for(i = 0; i < textsplit.length; i++){
-                    var act = textsplit[i];
-                    var res = act.toLowerCase();
-                    if(res == "yes"){
-                        repeat = false;
-                        reserva_confirm = true;
-						bot.sendMessage(id, "Your flight has been booked successfully! Would you like to set a reminder?");
-                    }
-                    else if(res == "no"){
-                        reserva_confirm = false;
-                        repeat = false;
-                    }
+        
+        //Caso donde se comprueba si se han aceptado las recomendaciones para origen o destino
+        else{
+            if(reserva_origen == ""){ 
+                var respuesta = parser.parserYesorNo(textsplit);
+                if(respuesta == 3){
+                    reserva_origen = origenTipico;
+                    controlAcciones(textsplit);
                 }
-                if(reserva_confirm == false && repeat == false){
-                    bot.sendMessage(id, helpmessages[13]);
-                    bot.sendMessage(id, helpmessages[11]);
-                    restartReserva();
-                    restart();
-                }
-            }
-            else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas == 0){
-                for(i = 0; i <textsplit.length; i++){
-                    var act = textsplit[i];
-                    var a = parseInt(act);
-                    if(Number.isInteger(a)){
-                         reserva_plazas = a;
-                        
-                    }
-                }
-                if(posiblevuelo.plazas > reserva_plazas && reserva_plazas > 0){ //Numero introducido por usuario
-                        //Preguntar si quiere vuelo de vuelta, antes de hacer la confirmación.
-                        bot.sendMessage(id, "I have enough tickes for you! Do you want to confirm the booking?");
-                }
-                else if(posiblevuelo.plazas <= reserva_plazas && reserva_plazas > 0){
-                    bot.sendMessage(id, "Sorry I have not enough tickets for you... Try with another flight!");
-                    reserva_plazas = 0;
-                    bot.sendMessage(id,helpmessages[11]);
-                    restartReserva();
-                    restart();
+                else if(respuesta == 0){
+                    waitingAnswer = false;
+                    bot.sendMessage(id, helpmessages[15]);
+                    bot.sendMessage(id, "Where do you want to start your travel?");
                 }
                 else{
                     bot.sendMessage(id, helpmessages[12]);
                 }
             }
-            else if(reserva_vuelo == false && reserva_confirm == false){
-                bd.flight(reserva_origen, reserva_destino,function(err, result){
-                    posiblevuelo = result;
-                     if(posiblevuelo == undefined){
-                    bot.sendMessage(id, "Sorry, I could not find a flight to you, you could try again with others destinations");
-                    restart();
-                    restartReserva();
-                    }
-                    else{
-                        var str = (posiblevuelo.fecha.toString().split("00:00")[0]) + "at " + posiblevuelo.hora;
-                        bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
-						bot.sendMessage(id, "I have found a flight to you on the date: " + str);
-                        reserva_vuelo = true;
-                        needwatson = false;
-                    }
-                });
+            else if(reserva_destino == ""){
+                var respuesta = parser.parserYesorNo(textsplit);
+                if(respuesta == 3){
+                    reserva_destino = destinoOfrecido;
+                }
+                else if(respuesta == 0){
+                    waitingAnswer = false;
+                    bot.sendMessage(id, helpmessages[15]);
+                    bot.sendMessage(id, "Where do you want to travel?");
+                }
+                else{
+                    bot.sendMessage(id, helpmessages[12]);
+                }
             }
-
         }
+        
+        //Caso de que aun falte por saber el destino
+       /* else if(reserva_destino == ""){
+            bot.sendMessage(id, "Where do you want to travel?");
+        }*/
+    }
+    //Caso donde ya se conoce el origen y el destino
+    if(reserva_destino != "" && reserva_origen != ""){
+        
+        //Ultima fase de la reserva donde se comprueba si el usuario quiere recordatorio del vuelo
+        if(reserva_confirm == true && reserva_plazas > 0 && reserva_vuelo == true){
+            needwatson = false;
+            var reminder = -1;
+            reminder = parser.parserYesorNo(textsplit);
+            if(reminder != -1){
+                if(reminder == 3)
+                    bot.sendMessage(id, "We have already set a reminder. We'll notify you 3 days before your flight.");
+                else
+                    bot.sendMessage(id, "Don't worry! You could set it later.");
+                
+                //Se confirma la reserva 
+                bd.confirmBooking(posiblevuelo, id, reserva_plazas, reminder);
+                bot.sendMessage(id, helpmessages[11]);
+                restartReserva();
+                restart();
+            }
+            else{
+                bot.sendMessage(id, helpmessages[12]);
+            }
+        }
+        
+        //Fase donde se comprueba si el usuario ha confirmado el vuelo y se le pregunta sobre si quiere recordatorio del mismo
+        else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas > 0){
+            var repeat = true;
+            var resul = parser.parserYesorNo(textsplit);
+            if(resul == 3){
+                repeat = false;
+                reserva_confirm = true;
+                bot.sendMessage(id, "Your flight has been booked successfully! Would you like to set a reminder?"); 
+            }
+            else if(resul == 0){
+                reserva_confirm = false;
+                repeat = false;
+            }
+            if(reserva_confirm == false && repeat == false){
+                bot.sendMessage(id, helpmessages[13]);
+                bot.sendMessage(id, helpmessages[11]);
+                restartReserva();
+                restart();
+            }
+        }
+        
+        //Fase donde se comprueban las plazas que ha indicado el usuario para la reserva
+        else if(reserva_vuelo == true && reserva_confirm == false && reserva_plazas == 0){
+            for(i = 0; i <textsplit.length; i++){
+                var act = textsplit[i];
+                var a = parseInt(act);
+                if(Number.isInteger(a)){
+                     reserva_plazas = a;
+                }
+            }
+            
+            //Comprobación de si existen plazas suficientes en el vuelo
+            if(posiblevuelo.plazas > reserva_plazas && reserva_plazas > 0){
+                    bot.sendMessage(id, "I have enough tickes for you! Do you want to confirm the booking?");
+            }
+            
+            //En caso de que no haya plazas suficientes en el vuelo
+            else if(posiblevuelo.plazas <= reserva_plazas && reserva_plazas > 0){
+                bot.sendMessage(id, "Sorry I have not enough tickets for you... Try with another flight!");
+                reserva_plazas = 0;
+                bot.sendMessage(id,helpmessages[11]);
+                restartReserva();
+                restart();
+            }
+            
+            //No se han entendido las plazas introducidas
+            else{
+                bot.sendMessage(id, helpmessages[12]);
+            }
+        }
+        
+        //Caso donde se comprueba si existe el vuelo especificado por el usuario 
+        else if(reserva_vuelo == false && reserva_confirm == false){
+            bd.flight(reserva_origen, reserva_destino,function(err, result){
+                posiblevuelo = result;
+                 if(posiblevuelo == undefined){
+                bot.sendMessage(id, "Sorry, I could not find a flight to you, you could try again with others destinations");
+                restart();
+                restartReserva();
+                }
+                else{
+                    var str = (posiblevuelo.fecha.toString().split("00:00")[0]) + "at " + posiblevuelo.hora;
+                    bot.sendMessage(id, "The ticket's price is "+ posiblevuelo.precio + "€ ¿How many tickets do you want? ");
+                    bot.sendMessage(id, "I have found a flight to you on the date: " + str);
+                    reserva_vuelo = true;
+                    needwatson = false;
+                }
+            });
+        }
+
+    }
+}
+function controlAcciones(texto){
+    if(action == 1){ //reserva
+        isbooking = true;
+        var textsplit = texto.split(" ");
+        controlReserva(textsplit);
     } else if (action == 2){ //Consultas de vuelo o reserva
 		isconsulting = true;
         var ok = false;

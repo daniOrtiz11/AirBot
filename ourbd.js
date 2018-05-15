@@ -1,6 +1,39 @@
 // Conexion con base de datos
 var mysql = require('mysql');
+//Clasificador bayesiano
+var bayes = require('node-bayes');
 var i = 0;
+
+var TRAINING_COLUMNS = ['mesReserva', 'mesVuelo', 'tickets', 'destino'];
+var TRAINING_DATA = [
+['Marzo', 'Octubre', '1', 'Poznan'],
+['Mayo', 'Julio', '4', 'Londres'],
+['Abril', 'Mayo', '3', 'Barcelona'],
+['Noviembre', 'Febrero', '2', 'París'],
+['Enero', 'Febrero', '2', 'Roma'],
+['Febrero', 'Octubre', '1', 'Bangkok'],
+['Septiembre', 'Enero', '2', 'Dubái'],
+['mesReserva', 'mesVuelo', '1', 'Tokio'],
+['mesReserva', 'mesVuelo', '5', 'Seúl'],
+['mesReserva', 'mesVuelo', '2', 'Nueva York'],
+['mesReserva', 'Enero', '5', 'Kuala Lumpur'],
+['mesReserva', 'mesVuelo', '5', 'Hong Kong'],
+['mesReserva', 'Marzo', '2', 'Estambul'],
+['mesReserva', 'mesVuelo', '5', 'Ámsterdam'],
+['mesReserva', 'mesVuelo', '3', 'Milán'],
+['mesReserva', 'mesVuelo', '1', 'Taipei'],
+['mesReserva', 'mesVuelo', '1', 'Shanghai'],
+['mesReserva', 'mesVuelo', '3', 'Viena'],
+['mesReserva', 'mesVuelo', '3', 'Praga'],
+['mesReserva', 'mesVuelo', '4', 'Miami'],
+['mesReserva', 'mesVuelo', '1', 'Dublín'],
+['mesReserva', 'mesVuelo', '3', 'Munich'],
+['mesReserva', 'Septiembre', '1', 'Toronto'],
+['Junio', 'Agosto', '5', 'Berlín'],
+['mesReserva', 'mesVuelo', '4', 'Johannesburgo'],
+['mesReserva', 'mesVuelo', '3', 'Los Angeles']
+];
+
 var connection = mysql.createConnection({ 
    host: 'localhost',
    user: 'root',
@@ -184,6 +217,37 @@ var consultDateReminder=function consultDateReminder(idR, idU, callback){
 	});
 }
 
+var consultaOrigenTipico = function consultaOrigenTipico(idU, callback){
+    connection.query('SELECT MAX(origen) as origenComun FROM reservas INNER JOIN vuelos on reservas.idvueloida = vuelos.id WHERE idusuario=?', [idU],function(err, rows, fields){
+	   if (err){
+		   throw err;
+	   }else{
+		   callback(null, rows);
+	   }
+	});
+}
+
+/*
+Funcion de predicción de destino a partir de:
+- de mes en el que estamos
+- de fecha en la que mas suele viajar el usuario
+- numero de billetes que mas suele reservar el usuario
+*/
+var predictDestino = function predictDestino(callback, mesact, mesdestino, ticketscomun){
+    // Numeric attributes
+var cls = new bayes.NaiveBayes({
+  columns: TRAINING_COLUMNS,
+  data: TRAINING_DATA,
+  verbose: true
+});
+cls.train();
+var answer = cls.predict([mesact, mesdestino, ticketscomun]);
+console.log(answer);
+}
+
+
+
+
 //exports.consultaVueloByOrigenDestino=consultaVueloByOrigenDestino;
 exports.connection=connection;
 exports.startConnection=startConnection;
@@ -197,3 +261,4 @@ exports.consReminder=consReminder;
 exports.reminders=reminders;
 exports.modifyReminder=modifyReminder;
 exports.consultDateReminder=consultDateReminder;
+exports.consultaOrigenTipico = consultaOrigenTipico;
