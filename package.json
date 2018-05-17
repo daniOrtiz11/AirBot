@@ -14,7 +14,11 @@
     "express": "~4.15.5",
     "jquery": "^3.3.1",
     "morgan": "~1.9.0",
+    "mysql": "^2.15.0",
+    "node-bayes": "^1.1.0",
     "pug": "2.0.0-beta11",
-    "serve-favicon": "~2.4.5"
+    "serve-favicon": "~2.4.5",
+    "telebot": "^1.2.6",
+    "watson-developer-cloud": "^3.4.1"
   }
 }
