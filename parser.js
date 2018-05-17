@@ -76,10 +76,10 @@ function parserYesorNo(textsplit){
     for(i = 0; i < textsplit.length; i++){
         var act = textsplit[i];
         var res = act.toLowerCase();
-        if(res == "yes"){
+        if(res == "yes" || res == "Yes"){
             respuesta = 3;
         }
-        else if(res == "no"){
+        else if(res == "no" || res =="No"){
             respuesta = 0;
         }
     }

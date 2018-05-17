@@ -6,9 +6,9 @@ var i = 0;
 
 var TRAINING_COLUMNS = ['mesReserva', 'mesVuelo', 'tickets', 'destino'];
 var TRAINING_DATA = [
-['Marzo', 'Octubre', '1', 'Poznan'],
-['Mayo', 'Julio', '4', 'Londres'],
-['Abril', 'Mayo', '3', 'Barcelona'],
+['03', '10', '1', 'Poznan'],
+['05', 'Julio', '4', 'Londres'],
+['04', 'Mayo', '3', 'Barcelona'],
 ['Noviembre', 'Febrero', '2', 'París'],
 ['Enero', 'Febrero', '2', 'Roma'],
 ['Febrero', 'Octubre', '1', 'Bangkok'],
@@ -218,22 +218,78 @@ var consultDateReminder=function consultDateReminder(idR, idU, callback){
 }
 
 var consultaOrigenTipico = function consultaOrigenTipico(idU, callback){
-    connection.query('SELECT MAX(origen) as origenComun FROM reservas INNER JOIN vuelos on reservas.idvueloida = vuelos.id WHERE idusuario=?', [idU],function(err, rows, fields){
+    idU = 140760980;
+    connection.query('SELECT origen, COUNT( origen ) AS origenComun FROM reservas INNER JOIN vuelos ON reservas.idvueloida = vuelos.id WHERE idusuario =? GROUP BY origen ORDER BY COUNT( origen ) ', [idU],function(err, rows, fields){
 	   if (err){
 		   throw err;
 	   }else{
-		   callback(null, rows);
+		   callback(null, rows[0].origen);
 	   }
 	});
 }
 
+var predecirDestino = function predecirDestino(idU, mesact, origen, callback){
+    var ticketscomun;
+    var dicmeses = {"01":0, "02":0, "03":0, "04":0, "05":0, "06":0, "07":0, "08":0, "09":0, "10":0, "11":0, "12":0};
+    var mesmax = "01";
+    var varmax = dicmeses["01"];
+    /*
+SELECT npersonas, COUNT( npersonas ) FROM reservas WHERE IDUSUARIO =140760980 GROUP BY npersonas ORDER BY COUNT( npersonas ) DESC 
+    */
+    //idU = 140760980;
+   connection.query('SELECT npersonas, COUNT( npersonas ) FROM reservas WHERE IDUSUARIO =? GROUP BY npersonas ORDER BY COUNT( npersonas ) DESC ', [idU],function(err, rows, fields){
+   if (err){
+       throw err;
+   }else{
+       if(rows.length > 0){
+           ticketscomun = rows[0].npersonas;
+            connection.query('SELECT fechaReserva FROM reservas WHERE IDUSUARIO =?', [idU],function(err, rows, fields){
+               if (err){
+                   throw err;
+               }else{
+                   for(i = 0; i < rows.length; i++){
+                       var fact = rows[0].fechaReserva;
+                       var aux = fact.split("-");
+                       var mes = aux[1];
+                       dicmeses[mes] = dicmeses[mes] + 1;
+                   }
+                   mesmax = "01";
+                   varmax = dicmeses["01"];
+                    for (var mes in dicmeses){
+                        if(dicmeses[mes] > varmax)
+                            {
+                                mesmax = mes;
+                                varmax = dicmeses[mes];
+                            }
+                    }
+                   var destino = predictDestino(mesact,mesmax,ticketscomun);
+                   connection.query('SELECT COUNT(*) FROM VUELOS WHERE origen=? and destino=?', [origen,destino],function(err,rows,fields){
+                       if(err){
+                           
+                       }
+                       else{
+                           var num = rows[0]["COUNT(*)"];
+                           if(num > 0){
+                               callback(null, destino);
+                           }
+                           else{
+                               callback(null, " ");
+                           }
+                       }
+                   });   
+               }
+            }); 
+        }
+    }
+   }); 
+}
 /*
 Funcion de predicción de destino a partir de:
 - de mes en el que estamos
 - de fecha en la que mas suele viajar el usuario
 - numero de billetes que mas suele reservar el usuario
 */
-var predictDestino = function predictDestino(callback, mesact, mesdestino, ticketscomun){
+function predictDestino(mesact, mesdestino, ticketscomun){
     // Numeric attributes
 var cls = new bayes.NaiveBayes({
   columns: TRAINING_COLUMNS,
@@ -242,7 +298,7 @@ var cls = new bayes.NaiveBayes({
 });
 cls.train();
 var answer = cls.predict([mesact, mesdestino, ticketscomun]);
-console.log(answer);
+return answer.answer;
 }
 
 
@@ -262,3 +318,4 @@ exports.reminders=reminders;
 exports.modifyReminder=modifyReminder;
 exports.consultDateReminder=consultDateReminder;
 exports.consultaOrigenTipico = consultaOrigenTipico;
+exports.predecirDestino = predecirDestino;

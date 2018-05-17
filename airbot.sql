@@ -1,34 +1,32 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.7
--- https://www.phpmyadmin.net/
+-- version 3.5.2.2
+-- http://www.phpmyadmin.net
 --
--- Servidor: 127.0.0.1
--- Tiempo de generación: 12-05-2018 a las 12:29:21
--- Versión del servidor: 10.1.30-MariaDB
--- Versión de PHP: 7.2.2
+-- Host: 127.0.0.1
+-- Generation Time: May 17, 2018 at 09:25 PM
+-- Server version: 5.5.27
+-- PHP Version: 5.4.7
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
-START TRANSACTION;
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+/*!40101 SET NAMES utf8 */;
 
 --
--- Base de datos: `airbot`
+-- Database: `airbot`
 --
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `recordatorios`
+-- Table structure for table `recordatorios`
 --
 
-CREATE TABLE `recordatorios` (
+CREATE TABLE IF NOT EXISTS `recordatorios` (
   `idreserva` int(11) NOT NULL,
   `idusuario` int(11) NOT NULL,
   `fechaRecordatorio` date NOT NULL,
@@ -36,35 +34,36 @@ CREATE TABLE `recordatorios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Volcado de datos para la tabla `recordatorios`
+-- Dumping data for table `recordatorios`
 --
 
 INSERT INTO `recordatorios` (`idreserva`, `idusuario`, `fechaRecordatorio`, `numeroDias`) VALUES
-(1, 140760980, '2018-05-14', 2);
+(1, 140760980, '2018-05-14', 2),
+(15, 542647784, '2018-06-29', 3);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `reservas`
+-- Table structure for table `reservas`
 --
 
-CREATE TABLE `reservas` (
-  `id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `reservas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `idvueloida` int(11) NOT NULL,
   `idvueloretorno` int(11) DEFAULT NULL,
   `idusuario` int(11) NOT NULL,
   `fechareserva` varchar(50) NOT NULL,
   `horareserva` varchar(50) NOT NULL,
   `npersonas` int(11) NOT NULL,
-  `expirado` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `expirado` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=16 ;
 
 --
--- Volcado de datos para la tabla `reservas`
+-- Dumping data for table `reservas`
 --
 
 INSERT INTO `reservas` (`id`, `idvueloida`, `idvueloretorno`, `idusuario`, `fechareserva`, `horareserva`, `npersonas`, `expirado`) VALUES
-(1, 1, NULL, 140760980, '21/04/2018 18:25', '11:14', 1, 0),
 (2, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '17:38', 2, 0),
 (3, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '20:39', 3, 0),
 (4, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '20:41', 3, 0),
@@ -77,43 +76,46 @@ INSERT INTO `reservas` (`id`, `idvueloida`, `idvueloretorno`, `idusuario`, `fech
 (11, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '20:52', 1, 0),
 (12, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '21:0', 1, 0),
 (13, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '21:3', 1, 0),
-(14, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '12:44', 2, 0);
+(14, 1, NULL, 140760980, '2018-08-16 00:00:00.000', '12:44', 2, 0),
+(15, 20, NULL, 542647784, '2018-07-11 00:00:00.000', '18:24', 3, 0);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `usuarios`
+-- Table structure for table `usuarios`
 --
 
-CREATE TABLE `usuarios` (
+CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Volcado de datos para la tabla `usuarios`
+-- Dumping data for table `usuarios`
 --
 
 INSERT INTO `usuarios` (`id`) VALUES
-(140760980);
+(140760980),
+(542647784);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `vuelos`
+-- Table structure for table `vuelos`
 --
 
-CREATE TABLE `vuelos` (
-  `id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `vuelos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `origen` varchar(100) NOT NULL,
   `destino` varchar(100) NOT NULL,
   `fecha` date NOT NULL,
   `hora` varchar(50) NOT NULL,
   `precio` double NOT NULL,
-  `plazas` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `plazas` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27 ;
 
 --
--- Volcado de datos para la tabla `vuelos`
+-- Dumping data for table `vuelos`
 --
 
 INSERT INTO `vuelos` (`id`, `origen`, `destino`, `fecha`, `hora`, `precio`, `plazas`) VALUES
@@ -136,46 +138,13 @@ INSERT INTO `vuelos` (`id`, `origen`, `destino`, `fecha`, `hora`, `precio`, `pla
 (17, 'Madrid', 'Shanghai', '2018-12-31', '15:30', 600, 200),
 (18, 'Barcelona', 'Viena', '2018-02-14', '15:30', 200, 200),
 (19, 'Oporto', 'Praga', '2018-12-14', '15:30', 150, 200),
-(20, 'Madrid', 'Miami', '2018-07-11', '15:30', 450, 200),
+(20, 'Madrid', 'Miami', '2018-07-11', '15:30', 450, 199),
 (21, 'Amsterdam', 'Dublín', '2018-10-01', '15:30', 250, 200),
 (22, 'Hong Kong', 'Munich', '2018-09-12', '15:30', 150, 200),
 (23, 'Barcelona', 'Toronto', '2018-09-15', '15:30', 350, 200),
 (24, 'Lisboa', 'Berlín', '2018-08-25', '15:30', 250, 200),
 (25, 'Toronto', 'Johannesburgo', '2018-11-11', '15:30', 800, 200),
 (26, 'Madrid', 'Los Angeles', '2018-08-30', '15:30', 350, 200);
-
---
--- Índices para tablas volcadas
---
-
---
--- Indices de la tabla `reservas`
---
-ALTER TABLE `reservas`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indices de la tabla `vuelos`
---
-ALTER TABLE `vuelos`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT de las tablas volcadas
---
-
---
--- AUTO_INCREMENT de la tabla `reservas`
---
-ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
-
---
--- AUTO_INCREMENT de la tabla `vuelos`
---
-ALTER TABLE `vuelos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

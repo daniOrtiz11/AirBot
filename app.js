@@ -31,12 +31,14 @@ var casoConsulta = -1;
 var confRemind = false;
 var confDays = false;
 var origenTipico = "";
+var destinoRecomendado = "";
 var waitingAnswer = false;
+var meses = new Array ("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre");
 //Mensajes predeterminados para salidas estandar
 var helpmessages = [
                 'Welcome to Airbot, your assistant 24/7 for flight reservations. What would you like to do?',
 				'I hope we meet again soon. Have a nice day!',
-				'Help message: type /start or /hello to start Airbot!',
+				'Help message: type /start /hi or /hello to start Airbot!',
                 'Airbot is already running!',
                 'Airbot is already running and you are booking a fligth!',
                 'Airbot is already running and you are consulting your fligths!',
@@ -152,32 +154,63 @@ function controlReserva(textsplit){
                     } else {
                         //El usuario ha hecho reservas anteriormente y se le ofrece el origen desde donde suele partir
                         if(result != null && result != undefined){
-                        origenTipico = result[0].origenComun;
-                        console.log(origenTipico);
-                        bot.sendMessage(id, "Would you like to travel from ?"+origenTipico);   
-                        waitingAnswer = true;
+                            if(origenTipico == result){
+                                bot.sendMessage(id,helpmessages[12]);
+                                bot.sendMessage(id, "Where do you want to start your travel?");
+                            }
+                            else{
+                                origenTipico = result;
+                                bot.sendMessage(id, "Would you like to travel from "+origenTipico + " ?");   
+                                waitingAnswer = true;
+                            }
+
                         }
                         //No hay datos anteriores sobre reservas del usuario
-                        else{
+                        else {
                             bot.sendMessage(id, "Where do you want to start your travel?");
                             restartReserva(); 
                         }
                     }
                 });
             }
-            //Caso de que no se haya encontrado el origen en el texto del usuario
+            //Caso de que no se haya encontrado el destino en el texto del usuario y se le ofrece un destino recomendado
+            /*
+            Solo se le devolverá un destino recomendado en caso de que para destino que el clasficador ha elegido el mejor para
+            el usuario haya un vuelo en fechas y plazas disponibles.
+            */
             else if(reserva_destino == ""){
-                
+                var f=new Date();    
+                var mesact = meses[f.getMonth()];
+                bd.predecirDestino(id, mesact, reserva_origen,function(err, result){
+                    if(err){
+                        console.log(err);	
+                    } else {
+                        if(result != null && result != undefined && result != " "){
+                            waitingAnswer = true;
+                            destinoRecomendado = result;
+                            bot.sendMessage(id, "Would you like to travel to "+destinoRecomendado +  "?");      
+                        }
+                        else if(destinoRecomendado != "repeat"){
+                            destinoRecomendado = "repeat";
+                            bot.sendMessage(id, "Where do you want to travel?");
+                        }
+                        else{
+                            bot.sendMessage(id,helpmessages[12]);
+                            bot.sendMessage(id, "Where do you want to travel?");         
+                        }
+                    }
+                });
             }
         }
         
         //Caso donde se comprueba si se han aceptado las recomendaciones para origen o destino
         else{
-            if(reserva_origen == ""){ 
+            if(reserva_origen == ""){
                 var respuesta = parser.parserYesorNo(textsplit);
                 if(respuesta == 3){
                     reserva_origen = origenTipico;
-                    controlAcciones(textsplit);
+                    waitingAnswer = false;
+                    controlAcciones(" ");
                 }
                 else if(respuesta == 0){
                     waitingAnswer = false;
@@ -191,12 +224,15 @@ function controlReserva(textsplit){
             else if(reserva_destino == ""){
                 var respuesta = parser.parserYesorNo(textsplit);
                 if(respuesta == 3){
-                    reserva_destino = destinoOfrecido;
+                    waitingAnswer = false;
+                    reserva_destino = destinoRecomendado;
                 }
                 else if(respuesta == 0){
+                    needwatson = true;
                     waitingAnswer = false;
                     bot.sendMessage(id, helpmessages[15]);
                     bot.sendMessage(id, "Where do you want to travel?");
+                    
                 }
                 else{
                     bot.sendMessage(id, helpmessages[12]);
@@ -374,7 +410,9 @@ function controlAcciones(texto){
 					 }
 					else{
 						bot.sendMessage(id, "Sorry, you dont have reservations!");
+                        bot.sendMessage(id, helpmessages[11]);
 						action = -1;
+                        restartReminder();
 						restart();
 					}
 				}
@@ -407,11 +445,13 @@ function controlAcciones(texto){
 				}
 			}
 		} else {
-			for(i = 0; i < textsplit.length; i++){
+            var numok = false;
+			for(i = 0; i < textsplit.length && numok == false; i++){
 				var act = textsplit[i];
 				var res = act.toLowerCase();
 				var a = parseInt(act);
 				if(Number.isInteger(a)){
+                    numok = true;
 					bd.consultDateReminder(idR,id,function(err,result){
 						if(err){
 							console.log(err);	
@@ -499,6 +539,8 @@ function restartReserva(){
     posiblevuelo = null;
     needwatson = true;
     isbooking = false;
+    origenTipico = "";
+    destinoRecomendado = "";
 }
 function restartConsulta(){
     casoConsulta = -1;
