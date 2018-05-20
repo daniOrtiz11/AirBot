@@ -6,6 +6,7 @@ exports.parserKey = parserKey;*/
 var verbs_to_reserve = ["book","reserve"];
 var verbs_to_consult = ["consult","query","see","check"];
 var verbs_to_reminder = ["modify","change","alter","adjust"];
+var verbs_to_recommend = ["recommend"];
 var words_to_querycase1 = ["reserve","reservation","book","booking"];
 var words_to_querycase2 = ["flight","flying"];
 var words_to_querycase3 = ["reserves","reservations","books","stockpile","bookings"];
@@ -64,7 +65,10 @@ function parserFunction(verbs,entities){
                 action = 2;
             }else if(verbs_to_reminder.indexOf(verbact) != -1){
 				action = 3;
-			}	
+			}
+            else if(verbs_to_recommend.indexOf(verbact) != -1){
+                action = 4;
+            }
         }
     }
 

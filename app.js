@@ -50,12 +50,13 @@ var helpmessages = [
                 'Can I do something else for you?',
                 'Sorry, I could not understand you, could you repeat it?',
                 'Ok, maybe next time',
-                'You can book and consult your flights',
+                'You can book and consult your flights or you can let me recommend you the perfect flight',
                 "Ok, don't worry"
 				];
 
 /*
 situation = 1 ->type /running and running = true
+
 situation = 2 ->type /goodbye 
 situation = 3 ->type /help and running = true
 */
@@ -474,6 +475,73 @@ function controlAcciones(texto){
 			}
 		}
 	}
+}
+else if(action == 4){
+    if(waitingAnswer == true){
+        var textsplit = texto.split(" ");
+        var respuesta = parser.parserYesorNo(textsplit);
+        if(respuesta == 3){
+            reserva_vuelo = false;  reserva_confirm = false;
+            action = 1;
+            controlAcciones(" ");
+        }
+        else if(respuesta == 0){
+            waitingAnswer = false;
+            bot.sendMessage(id, helpmessages[13]);
+            bot.sendMessage(id, helpmessages[11]);
+            restartReserva();
+        }
+        else{
+            bot.sendMessage(id, helpmessages[12]);
+        }
+    }
+    if(reserva_destino == "" && reserva_origen == ""){
+              bd.consultaOrigenTipico(id,function(err,result){
+        if(err){
+            console.log(err);	
+        } else {
+            //El usuario ha hecho reservas anteriormente y se le ofrece el origen desde donde suele partir
+            if(result != null && result != undefined){
+                    reserva_origen = result;
+                    var f=new Date(); 
+                    var mesact = meses[f.getMonth()];
+                    bd.predecirDestino(id, mesact, reserva_origen,function(err, result){
+                        if(err){
+                            console.log(err);	
+                        } else {
+                            if(result != null && result != undefined && result != " "){
+                                reserva_destino = result;
+                                bd.flight(reserva_origen, reserva_destino,function(err, result){
+                                    posiblevuelo = result;
+                                     if(posiblevuelo == undefined){
+                                        
+                                        bot.sendMessage(id, "It is too early to recommend a trip, maybe the next time");
+                                        bot.sendMessage(id, helpmessages[11]); 
+                                        restartReserva();
+                                    }
+                                    else{
+                                        bot.sendMessage(id, "Would you like to travel from "+reserva_origen + " to "+ reserva_destino + " ?");
+                                        waitingAnswer = true;
+                                    }
+                                });
+                            }
+                            else{
+                                bot.sendMessage(id, "It is too early to recommend a trip, maybe the next time");
+                                bot.sendMessage(id, helpmessages[11]);
+                                restartReserva();        
+                            }
+                        }
+                });
+                }
+            //No hay datos anteriores sobre reservas del usuario
+            else {
+                bot.sendMessage(id, "It is too early to recommend a trip, maybe the next time");
+                bot.sendMessage(id, helpmessages[11]);
+                restartReserva(); 
+            }
+        }
+    });
+    }
 }
 }
 /*
