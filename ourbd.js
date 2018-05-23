@@ -6,9 +6,9 @@ var i = 0;
 
 var TRAINING_COLUMNS = ['mesReserva', 'mesVuelo', 'tickets', 'destino'];
 var TRAINING_DATA = [
-['03', '10', '1', 'Poznan'],
-['05', 'Julio', '4', 'Londres'],
-['04', 'Mayo', '3', 'Barcelona'],
+['Marzo', 'Octubre', '1', 'Poznan'],
+['Mayo', 'Julio', '4', 'Londres'],
+['Abril', 'Mayo', '3', 'Barcelona'],
 ['Noviembre', 'Febrero', '2', 'París'],
 ['Enero', 'Febrero', '2', 'Roma'],
 ['Febrero', 'Octubre', '1', 'Bangkok'],
@@ -287,14 +287,47 @@ Funcion de predicción de destino a partir de:
 - numero de billetes que mas suele reservar el usuario
 */
 function predictDestino(mesact, mesdestino, ticketscomun){
-    // Numeric attributes
+    var messtring = "Enero";
+if(mesdestino == "02"){
+    messtring = "Febrero";
+}
+else if(mesdestino == "03"){
+    messtring = "Marzo";
+}
+    else if(mesdestino == "04"){
+    messtring = "Abril";
+}
+    else if(mesdestino == "05"){
+    messtring = "Mayo";
+}
+    else if(mesdestino == "06"){
+    messtring = "Junio";
+}
+    else if(mesdestino == "07"){
+    messtring = "Julio";
+}
+    else if(mesdestino == "08"){
+    messtring = "Agosto";
+}
+    else if(mesdestino == "09"){
+    messtring = "Septiembre";
+}
+    else if(mesdestino == "10"){
+    messtring = "Octubre";
+}
+    else if(mesdestino == "11"){
+    messtring = "Noviembre";
+}
+    else if(mesdestino == "12"){
+    messtring = "Diciembre";
+}
 var cls = new bayes.NaiveBayes({
   columns: TRAINING_COLUMNS,
   data: TRAINING_DATA,
   verbose: true
 });
 cls.train();
-var answer = cls.predict([mesact, mesdestino, ticketscomun]);
+var answer = cls.predict([mesact, messtring, ticketscomun]);
 return answer.answer;
 }
 
