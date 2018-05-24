@@ -1,8 +1,6 @@
-/*function parserKey(dic){
-    for (i = 0; i < dic.length)
-}
-
-exports.parserKey = parserKey;*/
+/*
+********************* Módulo Parser.js
+*/
 var verbs_to_reserve = ["book","reserve"];
 var verbs_to_consult = ["consult","query","see","check"];
 var verbs_to_reminder = ["modify","change","alter","adjust"];
@@ -21,6 +19,10 @@ function parserEntities(dic){
     return entities;
 }
 
+
+/*
+Descripcion: obtiene los verbos de los resultados obtenidos por watson
+*/
 function parserVerbs(dic){
     var verbs = [];
     for(i = 0; i < dic.length; i++){
@@ -30,6 +32,9 @@ function parserVerbs(dic){
     return verbs;
 }
 
+/*
+Descripcion: obtiene las palabras claves de los resultados obtenidos por watson
+*/
 function parserWords(dic){
     var keys = [];
     for(i = 0; i < dic.length; i++){
@@ -39,6 +44,10 @@ function parserWords(dic){
     return keys;
 }
 
+/*
+Descripcion: determina si el usuario quiere realizar una consulta sobre sus reservas 
+Deprecated: no hay diferencia si "caso" es >= 1
+*/
 function parserConsulta(words){
     var caso = -1;
     for(i = 0; i < words.length; i++){
@@ -54,6 +63,11 @@ function parserConsulta(words){
     }
     return caso;
 }
+
+
+/*
+Descripcion: determina a partir de verbos que accion quiere realizar el usuario
+*/
 function parserFunction(verbs,entities){
     var action = -1;
     if(verbs != null){
@@ -90,6 +104,19 @@ function parserYesorNo(textsplit){
     return respuesta;
 }
 
+/*
+Descripción: función encargada de autocompletar la entrada del usuario en dos casos particulares
+*/
+function checkText(texto){
+   if(texto == "I want to book" || texto== "I want to consult"){
+	   texto += " a flight";
+   } else if (texto == "I want to modify"){
+	   texto += " a reminder";
+   }
+   return texto;
+}
+
+exports.checkText = checkText;
 exports.parserYesorNo=parserYesorNo;
 exports.parserEntities=parserEntities;
 exports.parserVerbs=parserVerbs;

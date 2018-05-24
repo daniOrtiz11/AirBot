@@ -1,10 +1,18 @@
+/*
+********************* Módulo Ourbd.js
+*/
+/*
+Funciones relacionadas con las operaciones con la base de datos
+*/
 // Conexion con base de datos
 var mysql = require('mysql');
 //Clasificador bayesiano
 var bayes = require('node-bayes');
 var i = 0;
 
+//atributos del algoritmo de clasificacion
 var TRAINING_COLUMNS = ['mesReserva', 'mesVuelo', 'tickets', 'destino'];
+//conjunto de entrenamiento del algoritmo bayesiano
 var TRAINING_DATA = [
 ['Marzo', 'Octubre', '1', 'Poznan'],
 ['Mayo', 'Julio', '4', 'Londres'],

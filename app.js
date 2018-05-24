@@ -1,3 +1,8 @@
+/*
+********************* Módulo App.js
+*/
+
+
 const TeleBot = require('telebot');
 const watson =require('./watson');
 const bd = require('./ourbd');
@@ -97,8 +102,13 @@ function parserHelp(situation){
 }
 
 
+/*
+Descripcion: funcion encargada de obtener las palabras claves y averiguar la accion que quiere 
+realizar el usuario.
+*/
 function getkeys(texto){
    keywords = watson.getKeys();
+    //watson ha sido capaz de reconocer el texto
     if (keywords != undefined){
         entities = parser.parserEntities(keywords.entities);
         verbs = parser.parserVerbs(keywords.semantic_roles);
@@ -109,6 +119,7 @@ function getkeys(texto){
         verbs = null;
         words = null;
     }
+        //cambiar de una accion a otra o permanecer en una que se esta realizando
         var oldaction = action;
         var newaction = parser.parserFunction(verbs,entities);
         if(newaction == oldaction && (isbooking || isconsulting)){
@@ -128,6 +139,9 @@ function getkeys(texto){
     }
 }
 
+/*
+Descripcion: funcion encargada especificamente de la logica de la accion de reservar
+*/
 function controlReserva(textsplit){
     //Fase donde aun se desconoce el destino y/o el origen del viaje
     if(reserva_fecha == "" && (reserva_origen == "" || reserva_destino == "")){
@@ -343,6 +357,12 @@ function controlReserva(textsplit){
 
     }
 }
+
+/*
+Descripcion:
+Funcion encargada de controlar las acciones que realiza el usuario.
+Dependiendo de que accion se esta realizando o se va a realizar se tomara un camino u otro.
+*/
 function controlAcciones(texto){
     if(action == 1){ //reserva
         isbooking = true;
@@ -352,11 +372,14 @@ function controlAcciones(texto){
 		isconsulting = true;
         var ok = false;
 		var i = 0;
+        //comienzo o no de la consulta
         if(casoConsulta == -1)
             casoConsulta = parser.parserConsulta(words);
+        
+        //es una consulta valida
         if(casoConsulta == 4 || casoConsulta == 3 || casoConsulta == 2 || casoConsuta == 1){
                 bot.sendMessage(id, "Of course. These is yours flights reservations: ");
-				bd.consultReservasbyUser(id,function(err, result){ // result = booking
+				bd.consultReservasbyUser(id,function(err, result){ 
 					if(err){
 						console.log(err);
 					} else{
@@ -364,6 +387,7 @@ function controlAcciones(texto){
                             for (i = 0; i < result.length; i++){
                                 var rw = result[i];
                                 var ind = i+1;
+                                //se muestran las reservas del usuario con un formato personalizado
                                 var str = (rw.fecha.toString().split("00:00")[0]) + "at " + rw.hora;
                                 bot.sendMessage(id,'This is your flight number '+ind+' \n'
 										+ 'Flight from '+ rw.origen + ' to ' + rw.destino + '\n'
@@ -389,7 +413,9 @@ function controlAcciones(texto){
             restart();
         }
 	} else if (action == 3){ //Recordatorio
+        //se realiza un split del texto para posterior parseo
 		var textsplit = texto.split(" ");
+        //en caso de que no se hayan mostrado aun los recordatorios
 		if(confRemind == false){
 			bd.reminders(id,function(err, result){
 				if(err){
@@ -399,6 +425,7 @@ function controlAcciones(texto){
 							for (i = 0; i < result.length; i++){
 								var rw = result[i];
 								var ind = i+1;
+                                //se muestran los recordatorios con un formato personalizado
 								var str = (rw.fechaRecordatorio.toString().split("00:00")[0]);	
 								bot.sendMessage(id,'This is your reminder number ('+ind+') \n'
 								+ 'Reservation ID: '+ rw.idreserva + '\n'
@@ -423,6 +450,7 @@ function controlAcciones(texto){
 			for(i = 0; i < textsplit.length; i++){
 				var act = textsplit[i];
 				var res = act.toLowerCase();
+                //se determina el id del recordatorio que se quiere editar
 				var a = parseInt(act);
 				if(Number.isInteger(a)){
 					idR = a;
@@ -449,6 +477,7 @@ function controlAcciones(texto){
             var numok = false;
 			for(i = 0; i < textsplit.length && numok == false; i++){
 				var act = textsplit[i];
+                //se obtienen a los dias que se quiere modificar los recordatorios
 				var res = act.toLowerCase();
 				var a = parseInt(act);
 				if(Number.isInteger(a)){
@@ -476,7 +505,8 @@ function controlAcciones(texto){
 		}
 	}
 }
-else if(action == 4){
+else if(action == 4){ //accion de recomendacion
+    //el usuario decide si quiere o no el viaje recomendado
     if(waitingAnswer == true){
         var textsplit = texto.split(" ");
         var respuesta = parser.parserYesorNo(textsplit);
@@ -495,6 +525,7 @@ else if(action == 4){
             bot.sendMessage(id, helpmessages[12]);
         }
     }
+    //si es posible se le recomienda un viaje al usuario
     if(reserva_destino == "" && reserva_origen == ""){
               bd.consultaOrigenTipico(id,function(err,result){
         if(err){
@@ -544,12 +575,14 @@ else if(action == 4){
     }
 }
 }
+
 /*
 Descripcion:
 Parsear la conversación con el usuario y dirigir el comportamiento
 */
 function parserMessages(){
     bot.on('text', (data) => {
+    //obtención de texto e identificador de usuario
     var texto = data.text;
     id = data.from.id;
     if(texto != "" && texto != null && texto != undefined){
@@ -565,6 +598,9 @@ function parserMessages(){
         }
         else if(texto == "/stop" || texto == "/bye" || texto == "/goodbye"){
             parserHelp(2);
+            restartReserva();
+            restartConsulta();
+            restartReminder();
             running = false;
         }
         else if(texto == "/help"){
@@ -574,7 +610,7 @@ function parserMessages(){
             if(running == false)
             bot.sendMessage(id, helpmessages[2]);
             else{
-				texto = checkText(texto);
+				texto = parser.checkText(texto);
                 watson.getKeyWatson(texto);
                 setTimeout(getkeys, 1800, texto);
             }
@@ -583,6 +619,9 @@ function parserMessages(){
 });
 }
 
+/*
+Descripcion: función de reinicio de variables generales
+*/
 function restart(){
     keywords = null;
     entities = null;
@@ -593,9 +632,11 @@ function restart(){
     needwatson = true;
     isbooking = false;
     isconsulting = false;
-    //bot.sendMessage(id, "Can I do something else for you?");
 }
 
+/*
+Descripcion: función de reinicio de las variables de reserva
+*/
 function restartReserva(){
     reserva_origen = "";
     reserva_destino = "";
@@ -610,24 +651,24 @@ function restartReserva(){
     origenTipico = "";
     destinoRecomendado = "";
 }
+
+/*
+Descripcion: función de reinicio de las variables de consulta
+*/
 function restartConsulta(){
     casoConsulta = -1;
     isconsulting = false;
 }
 
+
+/*
+Descripcion: función de reinicio de las variables de recordatorio
+*/
 function restartReminder(){
 	confDays = false;
 	confRemind = false;
 }
 
-function checkText(texto){
-   if(texto == "I want to book" || texto== "I want to consult"){
-	   texto += " a flight";
-   } else if (texto == "I want to modify"){
-	   texto += " a reminder";
-   }
-   return texto;
-}
 /*
 Descripcion: funcion de inicio que conecta con la base de datos, 
 establece el comportamiento del bot y lo arranca.

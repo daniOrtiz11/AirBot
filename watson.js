@@ -1,3 +1,8 @@
+/*
+********************* Módulo Watson.js
+*/
+
+//Creedenciales para el uso de watson
 var NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js');
 var natural_language_understanding = new NaturalLanguageUnderstandingV1({
   'username': "b8773c63-2d40-4449-96eb-5b077028323c",
@@ -6,7 +11,10 @@ var natural_language_understanding = new NaturalLanguageUnderstandingV1({
 });
 var keywords;
 
-
+/*
+Descripcion: llamada a la api de watson con los parametros de entidades, 
+palabras clave y semantica de la frase (verbos, sujetos, objectos directos...)
+*/
 function getKeyWatson(conversation){
     var parameters = {
   'text': conversation,
